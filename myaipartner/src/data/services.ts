@@ -1,15 +1,13 @@
-import { Layers, Sparkles, Rocket, PlugZap, Code2, Database, Building2, ShieldCheck, FlaskConical } from 'lucide-react';
-
 export type ServiceCategory = {
   category: string;
   items: string[];
-  overview: { desc: string; icon: any };
+  overview: { desc: string };
 };
 
 export const services: ServiceCategory[] = [
   {
     category: 'AI Strategy & Advisory',
-    overview: { desc: 'Readiness, roadmaps, governance, and change management.', icon: Layers },
+    overview: { desc: 'Readiness, roadmaps, governance, and change management.' },
     items: [
       'AI Readiness Assessments',
       'AI Roadmap Development',
@@ -20,7 +18,7 @@ export const services: ServiceCategory[] = [
   },
   {
     category: 'AI Training & Upskilling',
-    overview: { desc: 'Executive workshops and corporate training programs.', icon: Sparkles },
+    overview: { desc: 'Executive workshops and corporate training programs.' },
     items: [
       'Executive Workshops (AI for decision-makers)',
       'Corporate Training Programs',
@@ -31,7 +29,7 @@ export const services: ServiceCategory[] = [
   },
   {
     category: 'AI Automation Services',
-    overview: { desc: 'RPA, chatbots, and workflow automation.', icon: Rocket },
+    overview: { desc: 'RPA, chatbots, and workflow automation.' },
     items: [
       'Robotic Process Automation (RPA)',
       'Document Processing Automation (OCR + NLP)',
@@ -43,7 +41,7 @@ export const services: ServiceCategory[] = [
   },
   {
     category: 'AI Implementation & Integration',
-    overview: { desc: 'Model development and systems integration at scale.', icon: PlugZap },
+    overview: { desc: 'Model development and systems integration at scale.' },
     items: [
       'Custom AI Model Development (NLP, Computer Vision, Predictive Analytics)',
       'Integration with ERP/CRM/HRM Systems',
@@ -54,7 +52,7 @@ export const services: ServiceCategory[] = [
   },
   {
     category: 'AI Application & Product Development',
-    overview: { desc: 'Web/mobile AI apps, dashboards, and GenAI products.', icon: Code2 },
+    overview: { desc: 'Web/mobile AI apps, dashboards, and GenAI products.' },
     items: [
       'Mobile AI App Development (iOS/Android)',
       'Web AI Solutions (recommendation systems, personalization engines)',
@@ -65,7 +63,7 @@ export const services: ServiceCategory[] = [
   },
   {
     category: 'Data & AI Infrastructure',
-    overview: { desc: 'Data platforms, MLOps, and scalable AI infrastructure.', icon: Database },
+    overview: { desc: 'Data platforms, MLOps, and scalable AI infrastructure.' },
     items: [
       'Data Collection & Cleaning Services',
       'Data Warehousing & Management',
@@ -76,7 +74,7 @@ export const services: ServiceCategory[] = [
   },
   {
     category: 'AI for Business Functions (Industry-Specific)',
-    overview: { desc: 'Applied AI for marketing, sales, finance, and more.', icon: Building2 },
+    overview: { desc: 'Applied AI for marketing, sales, finance, and more.' },
     items: [
       'AI for Marketing (segmentation, sentiment analysis, ad optimization)',
       'AI for Sales (lead scoring, predictive sales)',
@@ -89,7 +87,7 @@ export const services: ServiceCategory[] = [
   },
   {
     category: 'AI Security & Ethics',
-    overview: { desc: 'Bias mitigation, responsible AI, and risk management.', icon: ShieldCheck },
+    overview: { desc: 'Bias mitigation, responsible AI, and risk management.' },
     items: [
       'AI Cybersecurity Solutions (threat & anomaly detection)',
       'AI Bias Detection & Mitigation',
@@ -99,7 +97,7 @@ export const services: ServiceCategory[] = [
   },
   {
     category: 'AI Research & Innovation',
-    overview: { desc: 'PoCs, rapid prototyping, and emerging tech exploration.', icon: FlaskConical },
+    overview: { desc: 'PoCs, rapid prototyping, and emerging tech exploration.' },
     items: [
       'Custom AI R&D for Business Needs',
       'Proof of Concept (PoC) Development',
@@ -109,7 +107,7 @@ export const services: ServiceCategory[] = [
   },
   {
     category: 'Ongoing Support & Managed Services',
-    overview: { desc: 'Monitoring, updates, and on-demand AI consultants.', icon: Layers },
+    overview: { desc: 'Monitoring, updates, and on-demand AI consultants.' },
     items: [
       'AI-as-a-Service (subscription-based support)',
       'Monitoring & Maintenance of AI Systems',
@@ -120,6 +118,6 @@ export const services: ServiceCategory[] = [
   }
 ];
 
-export const servicesOverview = services.map(s => ({ title: s.category, desc: s.overview.desc, icon: s.overview.icon }));
+export const servicesOverview = services.map(s => ({ title: s.category, desc: s.overview.desc }));
 
 

@@ -1,6 +1,5 @@
 "use client";
 import { useState } from 'react';
-import { Mail, Phone, MapPin, Linkedin, Twitter } from 'lucide-react';
 
 export default function ContactSection() {
   const [status, setStatus] = useState<'idle'|'sending'|'sent'|'error'>('idle');
@@ -34,13 +33,13 @@ export default function ContactSection() {
           <h2 className="text-3xl md:text-4xl font-semibold">Contact Us</h2>
           <p className="text-gray-600">We’d love to hear about your AI goals.</p>
           <ul className="space-y-2 text-gray-700">
-            <li className="flex items-center gap-2"><MapPin className="h-4 w-4 text-brand-600"/> Johannesburg, South Africa</li>
-            <li className="flex items-center gap-2"><Mail className="h-4 w-4 text-brand-600"/> <a href="mailto:info@myaipartner.co.za" className="hover:text-brand-700">info@myaipartner.co.za</a></li>
-            <li className="flex items-center gap-2"><Phone className="h-4 w-4 text-brand-600"/> <a href="tel:+27XXXXXXXXX" className="hover:text-brand-700">+27 X XX XX XXXX</a></li>
+            <li className="flex items-center gap-2">Johannesburg, South Africa</li>
+            <li className="flex items-center gap-2"><a href="mailto:info@myaipartner.co.za" className="hover:text-brand-700">info@myaipartner.co.za</a></li>
+            <li className="flex items-center gap-2"><a href="tel:+27XXXXXXXXX" className="hover:text-brand-700">+27 X XX XX XXXX</a></li>
           </ul>
-          <div className="flex items-center gap-4 pt-2">
-            <a href="#" aria-label="LinkedIn" className="text-gray-600 hover:text-brand-700"><Linkedin className="h-5 w-5"/></a>
-            <a href="#" aria-label="Twitter" className="text-gray-600 hover:text-brand-700"><Twitter className="h-5 w-5"/></a>
+          <div className="flex items-center gap-4 pt-2 text-sm text-gray-600">
+            <a href="#" aria-label="LinkedIn" className="hover:text-brand-700">LinkedIn</a>
+            <a href="#" aria-label="Twitter" className="hover:text-brand-700">Twitter</a>
           </div>
         </div>
 

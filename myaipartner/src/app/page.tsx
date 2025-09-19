@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
-import { ArrowRight, Building2 } from 'lucide-react';
+ 
 import { servicesOverview } from '@/data/services';
 import { industries } from '@/data/industries';
 import ContactSection from '@/components/ContactSection';
@@ -19,7 +19,7 @@ export default function HomePage() {
             <div className="flex flex-wrap items-center gap-4">
               <Link href="/interest" className="btn-primary">Get Started</Link>
               <Link href="#services" className="inline-flex items-center gap-2 text-brand-700 font-medium hover:gap-3 transition-all">
-                Explore Services <ArrowRight className="h-4 w-4" />
+                Explore Services →
               </Link>
             </div>
           </div>
@@ -36,11 +36,8 @@ export default function HomePage() {
             <h2 className="text-3xl md:text-4xl font-semibold">About Us</h2>
             <p className="text-gray-600">My AI Partner helps organizations design and execute AI strategies that deliver measurable business value. We bring cross-industry expertise, practical delivery, and a focus on responsible AI.</p>
             <div className="grid gap-4 sm:grid-cols-2">
-              {[{icon: Layers, label: 'Expertise'}, {icon: Rocket, label: 'Strategy-Driven'}, {icon: Shield, label: 'Scalable & Secure'}, {icon: Sparkles, label: 'Ongoing Support'}].map(({icon:Icon,label}) => (
-                <div key={label} className="card p-5 flex items-center gap-3">
-                  <Icon className="h-5 w-5 text-brand-600"/>
-                  <span className="font-medium">{label}</span>
-                </div>
+              {['Expertise','Strategy-Driven','Scalable & Secure','Ongoing Support'].map((label) => (
+                <div key={label} className="card p-5 font-medium">{label}</div>
               ))}
             </div>
           </div>
@@ -64,13 +61,10 @@ export default function HomePage() {
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {servicesPreview.map((s) => (
               <div key={s.title} className="card p-6">
-                <div className="flex items-center gap-3 mb-3">
-                  <s.icon className="h-5 w-5 text-brand-600" />
-                  <h3 className="font-semibold">{s.title}</h3>
-                </div>
+                <div className="mb-3 font-semibold">{s.title}</div>
                 <p className="text-gray-600 mb-4">{s.desc}</p>
                 <Link href="/interest" className="inline-flex items-center gap-2 text-brand-700 font-medium hover:gap-3 transition-all">
-                  Learn More <ArrowRight className="h-4 w-4" />
+                  Learn More →
                 </Link>
               </div>
             ))}
@@ -84,10 +78,7 @@ export default function HomePage() {
           <h2 className="text-3xl md:text-4xl font-semibold mb-8">Industries</h2>
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {industries.map((label) => (
-              <div key={label} className="card p-6 flex items-center gap-3">
-                <Building2 className="h-5 w-5 text-brand-600" />
-                <span className="font-medium">{label}</span>
-              </div>
+              <div key={label} className="card p-6 font-medium">{label}</div>
             ))}
           </div>
         </div>
