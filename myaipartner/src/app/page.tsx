@@ -2,7 +2,7 @@ import Link from 'next/link';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
  
-import { servicesOverview } from '@/data/services';
+ 
 import { industries } from '@/data/industries';
 import ContactSection from '@/components/ContactSection';
 
@@ -59,13 +59,12 @@ export default function HomePage() {
         <div className="container-max">
           <h2 className="text-3xl md:text-4xl font-semibold mb-8 text-white">Services</h2>
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {servicesPreview.map((s) => (
-              <div key={s.title} className="card p-6">
-                <div className="mb-3 font-semibold text-white">{s.title}</div>
-                <p className="text-gray-300 mb-4">{s.desc}</p>
-                <Link href="/interest" className="inline-flex items-center gap-2 text-gray-300 hover:text-white font-medium transition-all">
-                  Learn More →
-                </Link>
+            {simpleServices.map((title) => (
+              <div key={title} className="card p-6">
+                <div className="font-semibold text-white">{title}</div>
+                <div className="mt-4">
+                  <Link href="/interest" className="inline-flex items-center gap-2 text-gray-300 hover:text-white font-medium transition-all">Get details →</Link>
+                </div>
               </div>
             ))}
           </div>
@@ -91,6 +90,13 @@ export default function HomePage() {
   );
 }
 
-const servicesPreview = servicesOverview;
+const simpleServices = [
+  'Strategy & Advisory',
+  'Training & Enablement',
+  'Automation & Workflows',
+  'Data & Analytics',
+  'Custom AI Tools & Chatbots',
+  'Dashboards & Reporting'
+];
 
 
