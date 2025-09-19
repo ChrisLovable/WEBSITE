@@ -1,0 +1,45 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg: #0b0c10;
+  --card: #0e1016;
+}
+
+html, body {
+  height: 100%;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  @apply bg-white text-gray-900 antialiased;
+}
+
+.container-max {
+  @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
+}
+
+.btn-primary {
+  @apply inline-flex items-center justify-center rounded-md bg-brand-600 px-6 py-3 text-white font-medium shadow-sm hover:bg-brand-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2 transition;
+}
+
+.section {
+  @apply py-16 md:py-24;
+}
+
+.card {
+  @apply rounded-xl border border-gray-200/60 bg-white shadow-sm hover:shadow-md transition;
+}
+
+.ai-gradient {
+  background: linear-gradient(135deg, rgba(99,102,241,0.12), rgba(168,85,247,0.12));
+}
+
+.glass {
+  @apply bg-white/60 backdrop-blur supports-[backdrop-filter]:bg-white/60;
+}
+
