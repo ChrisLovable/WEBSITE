@@ -40,7 +40,8 @@ export default function InterestForm({ showBackHome = false }: { showBackHome?: 
   const [sttLanguage, setSttLanguage] = useState<"af-ZA" | "en-ZA">("af-ZA");
   const [activeField, setActiveField] = useState<string | null>(null);
   const recognitionRef = useRef<any>(null);
-  const sttBaseValueRef = useRef<Record<string, string>>({});
+  const lastProcessedIndexRef = useRef<number>(0);
+  const lastAppendedRef = useRef<string>("");
 
   const visibleSection = useMemo(() => sectionMap[selectedService] ?? null, [selectedService]);
 
@@ -112,7 +113,6 @@ export default function InterestForm({ showBackHome = false }: { showBackHome?: 
     );
     if (!field) return;
     field.value = "";
-    sttBaseValueRef.current[fieldName] = "";
   };
 
   const toggleStt = (fieldName: string) => {
@@ -137,10 +137,6 @@ export default function InterestForm({ showBackHome = false }: { showBackHome?: 
     recognition.interimResults = true;
 
     recognition.onstart = () => {
-      const field = formRef.current?.querySelector<HTMLInputElement | HTMLTextAreaElement>(
-        `[name="${fieldName}"]`
-      );
-      sttBaseValueRef.current[fieldName] = field?.value.trim() || "";
       setSttListening(true);
       setActiveField(fieldName);
     };
@@ -153,29 +149,27 @@ export default function InterestForm({ showBackHome = false }: { showBackHome?: 
       setSttError("Could not capture audio. Please check microphone permissions.");
     };
     recognition.onresult = (event: any) => {
-      const field = formRef.current?.querySelector<HTMLInputElement | HTMLTextAreaElement>(
-        `[name="${fieldName}"]`
-      );
-      if (!field) return;
-
       let finalTranscript = "";
-      let interimTranscript = "";
-      for (let i = 0; i < event.results.length; i += 1) {
-        const transcript = event.results[i][0].transcript.replace(/\s+/g, " ").trim();
-        if (!transcript) continue;
+      const startIndex = Math.max(event.resultIndex, lastProcessedIndexRef.current);
+      for (let i = startIndex; i < event.results.length; i += 1) {
+        const transcript = event.results[i][0].transcript;
         if (event.results[i].isFinal) {
-          finalTranscript += `${transcript} `;
-        } else {
-          interimTranscript += `${transcript} `;
+          finalTranscript += transcript + " ";
         }
       }
+      lastProcessedIndexRef.current = event.results.length;
 
-      const baseValue = sttBaseValueRef.current[fieldName] || "";
-      const dictatedValue = `${finalTranscript}${interimTranscript}`.replace(/\s+/g, " ").trim();
-      field.value = baseValue && dictatedValue ? `${baseValue} ${dictatedValue}` : (baseValue || dictatedValue);
+      const normalizedFinal = finalTranscript.replace(/\s+/g, " ").trim();
+      const dedupeKey = normalizedFinal.toLowerCase();
+      if (!normalizedFinal || dedupeKey === lastAppendedRef.current) return;
+
+      lastAppendedRef.current = dedupeKey;
+      appendToField(fieldName, normalizedFinal);
     };
 
     recognitionRef.current = recognition;
+    lastProcessedIndexRef.current = 0;
+    lastAppendedRef.current = "";
     recognition.start();
   };
 
