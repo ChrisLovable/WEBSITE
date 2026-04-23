@@ -2,6 +2,7 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
+import type { Route } from 'next';
 
 export default function Header() {
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
@@ -79,7 +80,7 @@ export default function Header() {
                 {serviceLinks.map((service) => (
                   <Link
                     key={service.href}
-                    href={service.href}
+                    href={service.href as Route}
                     className="mb-2 block border border-cyan-500/45 bg-[#02141a] px-3 py-2.5 font-sans text-xs md:text-sm font-medium leading-snug tracking-normal text-cyan-100 shadow-[0_0_14px_rgba(6,182,212,0.15)] transition-all duration-200 last:mb-0 hover:border-cyan-300 hover:bg-cyan-900/40 hover:text-white hover:shadow-[0_0_20px_rgba(6,182,212,0.35)]"
                   >
                     {service.label}

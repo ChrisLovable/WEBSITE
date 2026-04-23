@@ -1,6 +1,7 @@
 "use client";
 
 import Link from 'next/link';
+import type { Route } from 'next';
 import Header from '@/components/Header';
 
 export default function HomePage() {
@@ -34,7 +35,7 @@ export default function HomePage() {
               </button>
               <h1 className="font-tech text-[1.85rem] sm:text-5xl md:text-6xl lg:text-7xl font-black tracking-tight leading-[1.05] sm:whitespace-nowrap">
                 <span className="bg-gradient-to-r from-cyan-400 via-teal-300 to-cyan-400 bg-clip-text text-transparent italic">
-                  Architects of Intelligence
+                  <span className="text-white">A</span>rchitects of <span className="text-white">I</span>ntelligence
                 </span>
               </h1>
             </div>
@@ -62,7 +63,7 @@ export default function HomePage() {
                 <Link
                   id={service.id}
                   key={service.title}
-                  href={service.href}
+                  href={service.href as Route}
                   className="relative block bg-[#0a0a0a] border border-cyan-400/50 p-6 transition hover:shadow-[0_0_20px_rgba(6,182,212,0.35)] hover:border-cyan-300"
                 >
                   <ServiceCardContent service={service} />
