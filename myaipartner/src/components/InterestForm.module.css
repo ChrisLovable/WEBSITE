@@ -1,0 +1,608 @@
+@import url("https://fonts.googleapis.com/css2?family=Exo+2:wght@300;400;500;600;700;800&family=Orbitron:wght@400;500;600;700&display=swap");
+
+.root {
+  --cyan: #00e5ff;
+  --cyan-dim: #00b8cc;
+  --cyan-glow: rgba(0, 229, 255, 0.15);
+  --cyan-glow-strong: rgba(0, 229, 255, 0.35);
+  --purple: #bf5fff;
+  --bg: #000000;
+  --bg2: #060d10;
+  --bg3: #0a1520;
+  --text: #e0f7ff;
+  --text-dim: #7fa8b8;
+  --border: rgba(0, 229, 255, 0.25);
+  --border-hover: rgba(0, 229, 255, 0.7);
+  --error: #ff4d6d;
+  position: relative;
+  color: var(--text);
+  font-family: "Exo 2", sans-serif;
+  background: var(--bg);
+  overflow: hidden;
+  color-scheme: dark;
+}
+
+.root,
+.root * {
+  box-sizing: border-box;
+}
+
+.root::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(0, 229, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 229, 255, 0.03) 1px, transparent 1px);
+  background-size: 50px 50px;
+  pointer-events: none;
+}
+
+.hero {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  padding: 28px 24px 40px;
+}
+
+.heroTag {
+  display: inline-block;
+  font-family: "Orbitron", sans-serif;
+  font-size: 11px;
+  letter-spacing: 4px;
+  color: var(--cyan);
+  text-transform: uppercase;
+  margin-bottom: 24px;
+  padding: 6px 20px;
+  border: 1px solid var(--border);
+  background: var(--cyan-glow);
+}
+
+.closeBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 0 18px;
+  padding: 8px 16px;
+  border: 1px solid var(--border);
+  background: var(--bg3);
+  color: var(--cyan);
+  font-family: "Orbitron", sans-serif;
+  font-size: 11px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.closeBtn:hover {
+  border-color: var(--cyan);
+  background: var(--cyan-glow);
+}
+
+.hero h1 {
+  font-family: "Orbitron", sans-serif;
+  font-size: clamp(28px, 5vw, 48px);
+  font-weight: 700;
+  color: #fff;
+  line-height: 1.15;
+  margin: 0 0 16px;
+  text-shadow: 0 0 40px rgba(0, 229, 255, 0.3);
+}
+
+.hero h1 span {
+  color: var(--cyan);
+}
+
+.hero p {
+  font-size: 16px;
+  color: var(--text-dim);
+  max-width: 560px;
+  margin: 0 auto;
+  line-height: 1.7;
+}
+
+.formWrap {
+  position: relative;
+  z-index: 1;
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 0 24px 80px;
+}
+
+.formSection {
+  border: 1px solid var(--border);
+  background: var(--bg2);
+  padding: 36px 40px;
+  margin-bottom: 24px;
+  position: relative;
+  transition: border-color 0.3s;
+}
+
+.formSection::before,
+.formSection::after {
+  content: "";
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  border-color: var(--cyan);
+  border-style: solid;
+}
+
+.formSection::before {
+  top: -1px;
+  left: -1px;
+  border-width: 2px 0 0 2px;
+}
+
+.formSection::after {
+  bottom: -1px;
+  right: -1px;
+  border-width: 0 2px 2px 0;
+}
+
+.formSection:focus-within {
+  border-color: var(--border-hover);
+  box-shadow: 0 0 30px var(--cyan-glow);
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 28px;
+}
+
+.sectionNum {
+  font-family: "Orbitron", sans-serif;
+  font-size: 11px;
+  color: var(--cyan);
+  background: var(--cyan-glow);
+  border: 1px solid var(--border);
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.sectionTitle {
+  font-family: "Orbitron", sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--cyan);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+.fieldGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.one {
+  grid-template-columns: 1fr;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.span2 {
+  grid-column: span 2;
+}
+
+.field label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--cyan);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+.req {
+  color: var(--purple);
+}
+
+.field input,
+.field select,
+.field textarea {
+  background: #03141c;
+  border: 1px solid rgba(0, 229, 255, 0.45);
+  color: var(--text);
+  padding: 12px 14px;
+  font-family: "Exo 2", sans-serif;
+  font-size: 15px;
+  outline: none;
+  transition: all 0.2s;
+  width: 100%;
+  min-height: 44px;
+}
+
+.field input::placeholder,
+.field textarea::placeholder {
+  color: rgba(127, 168, 184, 0.4);
+}
+
+.field input:focus,
+.field textarea:focus {
+  border-color: var(--cyan);
+  box-shadow: 0 0 0 1px rgba(0, 229, 255, 0.35), 0 0 16px var(--cyan-glow);
+  background: rgba(0, 229, 255, 0.04);
+}
+
+.field select:focus {
+  border-color: var(--cyan);
+  box-shadow: 0 0 0 1px rgba(0, 229, 255, 0.35), 0 0 16px var(--cyan-glow);
+  background-color: #03141c;
+}
+
+.field select {
+  cursor: pointer;
+  color: var(--text);
+  background-color: #03141c;
+  border-color: rgba(0, 229, 255, 0.45);
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  padding-right: 42px;
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--cyan) 50%),
+    linear-gradient(135deg, var(--cyan) 50%, transparent 50%);
+  background-position:
+    calc(100% - 16px) calc(50% - 2px),
+    calc(100% - 11px) calc(50% - 2px);
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+}
+
+.field select:focus {
+  background-image:
+    linear-gradient(45deg, transparent 50%, #9defff 50%),
+    linear-gradient(135deg, #9defff 50%, transparent 50%);
+}
+
+.field select option {
+  background-color: #03141c;
+  color: #d4f6ff;
+}
+
+.field select option:checked {
+  background-color: rgba(0, 229, 255, 0.2);
+  color: #ffffff;
+}
+
+.field textarea {
+  min-height: 110px;
+}
+
+.field textarea {
+  resize: vertical;
+  min-height: 100px;
+  line-height: 1.6;
+}
+
+.serviceGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  align-items: stretch;
+}
+
+.serviceOption {
+  display: none;
+}
+
+.serviceLabel {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 18px;
+  border: 1px solid rgba(0, 229, 255, 0.45);
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+  background: linear-gradient(180deg, rgba(0, 229, 255, 0.05) 0%, rgba(10, 21, 32, 0.95) 100%);
+  min-height: 150px;
+  height: 100%;
+  box-shadow: 0 0 14px rgba(0, 229, 255, 0.12);
+}
+
+.serviceLabel:hover {
+  border-color: var(--cyan);
+  box-shadow: 0 0 20px var(--cyan-glow-strong);
+}
+
+.serviceOption:checked + .serviceLabel {
+  border-color: var(--cyan);
+  background: rgba(0, 229, 255, 0.1);
+  box-shadow: 0 0 24px var(--cyan-glow-strong);
+}
+
+.serviceOption:checked + .serviceLabel::after {
+  content: "✓";
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  color: var(--cyan);
+  font-size: 12px;
+}
+
+.serviceIconWrap {
+  width: 34px;
+  height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(0, 229, 255, 0.5);
+  background: rgba(0, 229, 255, 0.1);
+}
+
+.serviceIcon {
+  font-size: 16px;
+  line-height: 1;
+}
+
+.serviceName {
+  font-family: "Orbitron", sans-serif;
+  font-size: 18px;
+  font-weight: 600;
+  color: #ffffff;
+  line-height: 1.25;
+  letter-spacing: 0.3px;
+}
+
+.serviceDesc {
+  font-size: 14px;
+  color: #9fd7e6;
+  line-height: 1.55;
+}
+
+.serviceHint {
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+.sttRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: nowrap;
+}
+
+.sttBtn {
+  border: 1px solid var(--border);
+  color: var(--cyan);
+  padding: 8px 14px;
+  font-size: 12px;
+  font-family: "Orbitron", sans-serif;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  cursor: pointer;
+  background: rgba(0, 229, 255, 0.08);
+  line-height: 1.35;
+  white-space: nowrap;
+}
+
+.sttBtn:hover {
+  border-color: var(--cyan);
+  background: rgba(0, 229, 255, 0.18);
+}
+
+.sttBtnActive {
+  border-color: rgba(255, 77, 109, 0.95);
+  color: #ffd8df;
+  background: rgba(255, 77, 109, 0.2);
+  box-shadow: 0 0 0 1px rgba(255, 77, 109, 0.35), 0 0 18px rgba(255, 77, 109, 0.28);
+}
+
+.sttBtnActive:hover {
+  border-color: #ff4d6d;
+  background: rgba(255, 77, 109, 0.28);
+}
+
+.clearBtn {
+  border: 1px solid var(--border);
+  color: var(--cyan);
+  padding: 8px 14px;
+  font-size: 12px;
+  font-family: "Orbitron", sans-serif;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  cursor: pointer;
+  background: rgba(0, 229, 255, 0.08);
+  line-height: 1.35;
+  white-space: nowrap;
+}
+
+.clearBtn:hover {
+  border-color: var(--cyan);
+  background: rgba(0, 229, 255, 0.18);
+}
+
+.sttError {
+  font-size: 11px;
+  color: var(--error);
+}
+
+.dynamicSection {
+  display: none;
+}
+
+.visible {
+  display: block;
+}
+
+.checkGroup {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.checkItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.checkItem input[type="checkbox"] {
+  display: none;
+}
+
+.checkBox {
+  width: 18px;
+  height: 18px;
+  border: 1px solid var(--border);
+  background: var(--bg3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.checkItem input:checked ~ .checkBox {
+  border-color: var(--cyan);
+  background: var(--cyan-glow);
+}
+
+.checkItem input:checked ~ .checkBox::after {
+  content: "✓";
+  color: var(--cyan);
+  font-size: 11px;
+}
+
+.checkText {
+  font-size: 13px;
+  color: var(--text-dim);
+}
+
+.submitArea {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  margin-top: 8px;
+}
+
+.submitBtn {
+  position: relative;
+  padding: 18px 60px;
+  background: transparent;
+  border: 1px solid var(--cyan);
+  color: var(--cyan);
+  font-family: "Orbitron", sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: all 0.3s;
+  overflow: hidden;
+}
+
+.submitBtn::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--cyan);
+  transform: translateX(-101%);
+  transition: transform 0.3s ease;
+  z-index: 0;
+}
+
+.submitBtn:hover::before {
+  transform: translateX(0);
+}
+
+.submitBtn:hover {
+  color: #000;
+  box-shadow: 0 0 40px var(--cyan-glow-strong);
+}
+
+.submitBtn span {
+  position: relative;
+  z-index: 1;
+}
+
+.submitNote {
+  font-size: 12px;
+  color: var(--text-dim);
+  text-align: center;
+}
+
+.successMsg {
+  display: none;
+  text-align: center;
+  padding: 60px 40px;
+  border: 1px solid var(--cyan);
+  background: var(--bg2);
+  box-shadow: 0 0 60px var(--cyan-glow);
+  position: relative;
+}
+
+.successVisible {
+  display: block;
+}
+
+.successIcon {
+  font-size: 48px;
+  margin-bottom: 20px;
+}
+
+.successMsg h2 {
+  font-family: "Orbitron", sans-serif;
+  font-size: 20px;
+  color: var(--cyan);
+  margin-bottom: 12px;
+  letter-spacing: 2px;
+}
+
+.successMsg p {
+  color: var(--text-dim);
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.invalid {
+  border-color: var(--error) !important;
+}
+
+@media (max-width: 640px) {
+  .fieldGrid,
+  .serviceGrid,
+  .checkGroup {
+    grid-template-columns: 1fr;
+  }
+  .formSection {
+    padding: 24px 20px;
+  }
+
+  .hero {
+    padding: 16px 18px 30px;
+  }
+  .span2 {
+    grid-column: span 1;
+  }
+
+  .sttRow {
+    gap: 6px;
+  }
+
+  .sttBtn,
+  .clearBtn {
+    padding: 8px 10px;
+    font-size: 11px;
+  }
+
+  .submitBtn {
+    padding: 14px 20px;
+    font-size: 12px;
+    letter-spacing: 1.4px;
+  }
+}

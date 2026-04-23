@@ -1,7 +1,6 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
 :root {
   --bg: #0b0c10;
   --card: #0e1016;
@@ -17,6 +16,12 @@ html {
 
 body {
   @apply bg-neutral-950 text-gray-100 antialiased;
+  font-family: inherit;
+  background-image:
+    linear-gradient(rgba(34, 211, 238, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(34, 211, 238, 0.06) 1px, transparent 1px);
+  background-size: 50px 50px;
+  background-attachment: fixed;
 }
 
 .container-max {
@@ -39,5 +44,28 @@ body {
 
 .glass {
   @apply bg-neutral-900/60 backdrop-blur supports-[backdrop-filter]:bg-neutral-900/60;
+}
+
+.font-tech {
+  font-family: var(--font-orbitron), sans-serif;
+}
+
+html.light-mode body {
+  background-color: #f5fbff;
+  color: #062433;
+  background-image:
+    linear-gradient(rgba(0, 100, 120, 0.12) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 100, 120, 0.12) 1px, transparent 1px);
+}
+
+html.light-mode header {
+  background-color: rgba(245, 251, 255, 0.92) !important;
+  border-bottom-color: rgba(0, 120, 145, 0.35) !important;
+}
+
+html.light-mode nav a,
+html.light-mode nav button {
+  color: #075f75 !important;
+  border-color: rgba(0, 120, 145, 0.65) !important;
 }
 
