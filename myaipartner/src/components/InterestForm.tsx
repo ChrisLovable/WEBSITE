@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useMemo, useRef, useState } from "react";
+import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import css from "@/components/InterestForm.module.css";
 
@@ -17,6 +17,7 @@ const services = [
 ];
 
 const appTypeOptions = ["Web Application", "Android App", "iOS App", "I don't know yet"];
+const DEBUG_TAG = "[INTEREST-FORM-TRACE]";
 
 const sectionMap: Record<string, string | null> = {
   "AI Strategy & Consulting": "sec_consulting",
@@ -39,7 +40,94 @@ export default function InterestForm({ showBackHome = false }: { showBackHome?: 
   const [error, setError] = useState<string | null>(null);
   const visibleSection = useMemo(() => sectionMap[selectedService] ?? null, [selectedService]);
 
+  const debugLog = (event: string, details?: Record<string, unknown>) => {
+    console.error({
+      tag: DEBUG_TAG,
+      event,
+      details: details || {},
+      state: {
+        selectedService,
+        visibleSection,
+        submitted,
+        submitting,
+        error
+      },
+      timestamp: new Date().toISOString()
+    });
+  };
+
+  useEffect(() => {
+    debugLog("component:mounted");
+    const form = formRef.current;
+    if (!form) return;
+
+    const logEvent = (eventName: string, event: Event) => {
+      const target = event.target as HTMLInputElement | HTMLTextAreaElement | null;
+      const native = event as InputEvent;
+      debugLog(`dom:${eventName}`, {
+        event: eventName,
+        name: target?.name || null,
+        type: target?.type || null,
+        value: target?.value ?? null,
+        checked: typeof (target as HTMLInputElement | null)?.checked === "boolean"
+          ? (target as HTMLInputElement).checked
+          : null,
+        inputType: native.inputType || null,
+        data: native.data || null,
+        isComposing: native.isComposing ?? null,
+        key: (event as KeyboardEvent).key || null
+      });
+    };
+
+    const onBeforeInput = (event: Event) => logEvent("beforeinput", event);
+    const onInput = (event: Event) => logEvent("input", event);
+    const onCompositionStart = (event: Event) => logEvent("compositionstart", event);
+    const onCompositionEnd = (event: Event) => logEvent("compositionend", event);
+    const onChange = (event: Event) => logEvent("change", event);
+    const onClick = (event: Event) => logEvent("click", event);
+    const onFocus = (event: Event) => logEvent("focus", event);
+    const onBlur = (event: Event) => logEvent("blur", event);
+    const onKeyDown = (event: Event) => logEvent("keydown", event);
+    const onKeyUp = (event: Event) => logEvent("keyup", event);
+    const onPaste = (event: Event) => logEvent("paste", event);
+    const onSubmit = (event: Event) => logEvent("submit", event);
+
+    form.addEventListener("beforeinput", onBeforeInput, true);
+    form.addEventListener("input", onInput, true);
+    form.addEventListener("compositionstart", onCompositionStart, true);
+    form.addEventListener("compositionend", onCompositionEnd, true);
+    form.addEventListener("change", onChange, true);
+    form.addEventListener("click", onClick, true);
+    form.addEventListener("focus", onFocus, true);
+    form.addEventListener("blur", onBlur, true);
+    form.addEventListener("keydown", onKeyDown, true);
+    form.addEventListener("keyup", onKeyUp, true);
+    form.addEventListener("paste", onPaste, true);
+    form.addEventListener("submit", onSubmit, true);
+
+    return () => {
+      debugLog("component:unmounted");
+      form.removeEventListener("beforeinput", onBeforeInput, true);
+      form.removeEventListener("input", onInput, true);
+      form.removeEventListener("compositionstart", onCompositionStart, true);
+      form.removeEventListener("compositionend", onCompositionEnd, true);
+      form.removeEventListener("change", onChange, true);
+      form.removeEventListener("click", onClick, true);
+      form.removeEventListener("focus", onFocus, true);
+      form.removeEventListener("blur", onBlur, true);
+      form.removeEventListener("keydown", onKeyDown, true);
+      form.removeEventListener("keyup", onKeyUp, true);
+      form.removeEventListener("paste", onPaste, true);
+      form.removeEventListener("submit", onSubmit, true);
+    };
+  }, [debugLog]);
+
+  useEffect(() => {
+    debugLog("state:changed");
+  }, [selectedService, visibleSection, submitted, submitting, error]);
+
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    debugLog("submit:handler:start");
     event.preventDefault();
     const formEl = event.currentTarget;
     let valid = true;
@@ -49,13 +137,18 @@ export default function InterestForm({ showBackHome = false }: { showBackHome?: 
       if (!field.value.trim()) {
         field.classList.add(css.invalid);
         valid = false;
+        debugLog("submit:required-missing", { fieldName: field.name });
       }
     });
     if (!selectedService) valid = false;
-    if (!valid) return;
+    if (!valid) {
+      debugLog("submit:validation-failed", { selectedService });
+      return;
+    }
 
     setSubmitting(true);
     setError(null);
+    debugLog("submit:validation-passed");
 
     const form = new FormData(formEl);
     const payload = {
@@ -66,29 +159,38 @@ export default function InterestForm({ showBackHome = false }: { showBackHome?: 
       notes: String(form.get("description") || ""),
       service: selectedService
     };
+    debugLog("submit:payload-ready", payload as Record<string, unknown>);
 
     try {
+      debugLog("submit:api-contact:request");
       const res = await fetch("/api/contact", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
       });
+      debugLog("submit:api-contact:response", { ok: res.ok, status: res.status });
       if (!res.ok) throw new Error("Failed to submit");
       setSubmitted(true);
+      debugLog("submit:success");
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : "Something went wrong");
+      debugLog("submit:error", { message: e instanceof Error ? e.message : "Something went wrong" });
     } finally {
       setSubmitting(false);
+      debugLog("submit:finally");
     }
   };
 
   const renderFieldActions = (_fieldName: string) => null;
 
   const closeForm = () => {
+    debugLog("close:clicked");
     if (typeof window !== "undefined" && window.history.length > 1) {
+      debugLog("close:router-back");
       router.back();
       return;
     }
+    debugLog("close:router-push-home");
     router.push("/");
   };
 
@@ -129,7 +231,10 @@ export default function InterestForm({ showBackHome = false }: { showBackHome?: 
                     type="radio"
                     name="service"
                     checked={selectedService === s.value}
-                    onChange={() => setSelectedService(s.value)}
+                    onChange={() => {
+                      debugLog("service:selected", { id: s.id, value: s.value });
+                      setSelectedService(s.value);
+                    }}
                   />
                   <label htmlFor={s.id} className={css.serviceLabel}>
                     <span className={css.serviceIconWrap}>
