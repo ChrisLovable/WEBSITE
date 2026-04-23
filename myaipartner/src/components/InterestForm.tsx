@@ -42,9 +42,12 @@ export default function InterestForm({ showBackHome = false }: { showBackHome?: 
   const recognitionRef = useRef<any>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const mobileStreamRef = useRef<MediaStream | null>(null);
-  const audioChunksRef = useRef<Blob[]>([]);
   const isTranscribingRef = useRef(false);
   const mobileTranscribeTailRef = useRef<Promise<void>>(Promise.resolve());
+  const mobileSessionSeqRef = useRef(0);
+  const mobileActiveSessionRef = useRef<number | null>(null);
+  const mobileCommittedSessionsRef = useRef<Set<number>>(new Set());
+  const mobileLastCommittedTextRef = useRef<Record<string, string>>({});
   const finalizedIndicesRef = useRef<Set<number>>(new Set());
   const finalizedTextRef = useRef<Record<string, string>>({});
 
@@ -54,6 +57,20 @@ export default function InterestForm({ showBackHome = false }: { showBackHome?: 
     if (typeof navigator === "undefined") return;
     const navLang = (navigator.language || "").toLowerCase();
     setSttLanguage(navLang.startsWith("af") ? "af-ZA" : "en-ZA");
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      try {
+        if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
+          mediaRecorderRef.current.stop();
+        }
+      } catch {
+        // no-op cleanup guard
+      }
+      mobileStreamRef.current?.getTracks().forEach((track) => track.stop());
+      mobileStreamRef.current = null;
+    };
   }, []);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -131,7 +148,7 @@ export default function InterestForm({ showBackHome = false }: { showBackHome?: 
     /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 
   const startMobileRecording = async (fieldName: string) => {
-    if (isTranscribingRef.current) return;
+    if (isTranscribingRef.current || mediaRecorderRef.current) return;
     setSttError(null);
 
     try {
@@ -160,7 +177,14 @@ export default function InterestForm({ showBackHome = false }: { showBackHome?: 
           if (!response.ok) throw new Error(data?.error || "Transcription failed");
 
           const transcript = String(data?.transcript || "").trim();
-          if (transcript) appendToField(fieldName, transcript);
+          if (transcript) {
+            const normalizedTranscript = transcript.replace(/\s+/g, " ").trim().toLowerCase();
+            const previousNormalized = (mobileLastCommittedTextRef.current[fieldName] || "").toLowerCase();
+            if (normalizedTranscript && normalizedTranscript !== previousNormalized) {
+              mobileLastCommittedTextRef.current[fieldName] = normalizedTranscript;
+              appendToField(fieldName, transcript);
+            }
+          }
         } catch (err: unknown) {
           setSttError(err instanceof Error ? err.message : "Transcription failed");
         } finally {
@@ -169,23 +193,32 @@ export default function InterestForm({ showBackHome = false }: { showBackHome?: 
       };
 
       const recorder = new MediaRecorder(stream, { mimeType });
+      const sessionId = ++mobileSessionSeqRef.current;
+      const sessionChunks: Blob[] = [];
       mobileStreamRef.current = stream;
-      audioChunksRef.current = [];
+      mobileActiveSessionRef.current = sessionId;
 
       recorder.ondataavailable = (event: BlobEvent) => {
         if (event.data && event.data.size > 0) {
-          audioChunksRef.current.push(event.data);
+          sessionChunks.push(event.data);
         }
       };
 
       recorder.onstop = async () => {
-        const chunksSnapshot = audioChunksRef.current.slice();
-        audioChunksRef.current = [];
+        const chunksSnapshot = sessionChunks.slice();
         mobileStreamRef.current?.getTracks().forEach((track) => track.stop());
         mobileStreamRef.current = null;
         mediaRecorderRef.current = null;
+        if (mobileActiveSessionRef.current === sessionId) {
+          mobileActiveSessionRef.current = null;
+        }
+        if (mobileCommittedSessionsRef.current.has(sessionId)) return;
+        mobileCommittedSessionsRef.current.add(sessionId);
+
         const blob = new Blob(chunksSnapshot, { type: mimeType });
-        const job = mobileTranscribeTailRef.current.then(() => transcribeBlob(blob));
+        const job = mobileTranscribeTailRef.current.then(async () => {
+          await transcribeBlob(blob);
+        });
         mobileTranscribeTailRef.current = job.catch(() => {});
         await job;
       };
@@ -211,10 +244,11 @@ export default function InterestForm({ showBackHome = false }: { showBackHome?: 
     if (typeof window === "undefined") return;
 
     if (isMobile()) {
+      if (sttListening && mediaRecorderRef.current && activeField !== fieldName) {
+        return;
+      }
       if (sttListening && mediaRecorderRef.current && activeField === fieldName) {
         mediaRecorderRef.current.stop();
-        mobileStreamRef.current?.getTracks().forEach((track) => track.stop());
-        mobileStreamRef.current = null;
         setSttListening(false);
         setActiveField(null);
         return;
