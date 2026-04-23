@@ -7,7 +7,8 @@ import Header from '@/components/Header';
 export default function HomePage() {
   const shareOnWhatsApp = () => {
     if (typeof window === "undefined") return;
-    const message = `Take a look at this site: ${window.location.href}`;
+    const shareUrl = window.location.origin;
+    const message = `${shareUrl}\n\nTake a look at this site`;
     const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, "_blank", "noopener,noreferrer");
   };

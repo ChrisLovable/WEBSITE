@@ -14,7 +14,7 @@ export default function PricingEngagementProcessPage() {
           </Link>
 
           <section className="space-y-4 border border-cyan-400/50 bg-black/70 p-8">
-            <h1 className="font-tech text-3xl text-cyan-300 md:text-4xl">Pricing &amp; Engagement Process</h1>
+            <h1 className="font-tech text-2xl text-cyan-300 md:text-3xl">Pricing &amp; Engagement Process</h1>
             <p className="text-lg leading-relaxed text-gray-300">
               We believe in being clear and transparent about how we work, how projects are scoped, and how fees are structured. Because most of our work is tailored to the needs of each client, final pricing depends on the scope, complexity, and delivery requirements of the specific engagement.
             </p>

@@ -44,9 +44,7 @@ export default function InterestForm({ showBackHome = false }: { showBackHome?: 
   const mobileStreamRef = useRef<MediaStream | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const isTranscribingRef = useRef(false);
-  const mobileTranscribeBusyRef = useRef(false);
-  const pendingMobileChunksRef = useRef<Blob[]>([]);
-  const lastMobileChunkTextRef = useRef<string>("");
+  const mobileTranscribeTailRef = useRef<Promise<void>>(Promise.resolve());
   const finalizedIndicesRef = useRef<Set<number>>(new Set());
   const finalizedTextRef = useRef<Record<string, string>>({});
 
@@ -146,62 +144,50 @@ export default function InterestForm({ showBackHome = false }: { showBackHome?: 
       const mimeType = MediaRecorder.isTypeSupported("audio/webm;codecs=opus")
         ? "audio/webm;codecs=opus"
         : "audio/webm";
-
-      const transcribeChunk = async (chunk: Blob) => {
-        const formData = new FormData();
-        formData.append("audio", new File([chunk], "recording.webm", { type: mimeType }));
-        formData.append("language", sttLanguage.startsWith("af") ? "af" : "en");
-
-        const response = await fetch("/api/transcribe", {
-          method: "POST",
-          body: formData,
-        });
-        const data = await response.json();
-        if (!response.ok) throw new Error(data?.error || "Transcription failed");
-
-        const transcript = String(data?.transcript || "").replace(/\s+/g, " ").trim();
-        const dedupeKey = transcript.toLowerCase();
-        if (transcript && dedupeKey !== lastMobileChunkTextRef.current) {
-          lastMobileChunkTextRef.current = dedupeKey;
-          appendToField(fieldName, transcript);
-        }
-      };
-
-      const processPendingChunks = async () => {
-        if (mobileTranscribeBusyRef.current) return;
-        const nextChunk = pendingMobileChunksRef.current.shift();
-        if (!nextChunk) return;
-        mobileTranscribeBusyRef.current = true;
+      const transcribeBlob = async (blob: Blob) => {
+        if (!blob || blob.size < 1800) return;
+        isTranscribingRef.current = true;
         try {
-          await transcribeChunk(nextChunk);
+          const formData = new FormData();
+          formData.append("audio", new File([blob], "recording.webm", { type: mimeType }));
+          formData.append("language", sttLanguage.startsWith("af") ? "af" : "en");
+
+          const response = await fetch("/api/transcribe", {
+            method: "POST",
+            body: formData,
+          });
+          const data = await response.json();
+          if (!response.ok) throw new Error(data?.error || "Transcription failed");
+
+          const transcript = String(data?.transcript || "").trim();
+          if (transcript) appendToField(fieldName, transcript);
         } catch (err: unknown) {
           setSttError(err instanceof Error ? err.message : "Transcription failed");
         } finally {
-          mobileTranscribeBusyRef.current = false;
-          if (pendingMobileChunksRef.current.length > 0) {
-            void processPendingChunks();
-          }
+          isTranscribingRef.current = false;
         }
       };
 
       const recorder = new MediaRecorder(stream, { mimeType });
       mobileStreamRef.current = stream;
       audioChunksRef.current = [];
-      pendingMobileChunksRef.current = [];
-      lastMobileChunkTextRef.current = "";
 
       recorder.ondataavailable = (event: BlobEvent) => {
         if (event.data && event.data.size > 0) {
-          pendingMobileChunksRef.current.push(event.data);
-          void processPendingChunks();
+          audioChunksRef.current.push(event.data);
         }
       };
 
       recorder.onstop = async () => {
+        const chunksSnapshot = audioChunksRef.current.slice();
+        audioChunksRef.current = [];
         mobileStreamRef.current?.getTracks().forEach((track) => track.stop());
         mobileStreamRef.current = null;
         mediaRecorderRef.current = null;
-        audioChunksRef.current = [];
+        const blob = new Blob(chunksSnapshot, { type: mimeType });
+        const job = mobileTranscribeTailRef.current.then(() => transcribeBlob(blob));
+        mobileTranscribeTailRef.current = job.catch(() => {});
+        await job;
       };
 
       recorder.onerror = () => {
@@ -213,7 +199,7 @@ export default function InterestForm({ showBackHome = false }: { showBackHome?: 
       mediaRecorderRef.current = recorder;
       setSttListening(true);
       setActiveField(fieldName);
-      recorder.start(1200);
+      recorder.start();
     } catch {
       setSttListening(false);
       setActiveField(null);
