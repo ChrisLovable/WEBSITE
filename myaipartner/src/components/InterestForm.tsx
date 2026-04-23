@@ -41,7 +41,7 @@ export default function InterestForm({ showBackHome = false }: { showBackHome?: 
   const [sttError, setSttError] = useState<string | null>(null);
   const [sttLanguage, setSttLanguage] = useState<"af-ZA" | "en-ZA">("en-ZA");
   const [activeField, setActiveField] = useState<string | null>(null);
-  const recognitionRef = useRef<any>(null);
+  const [sttPhase, setSttPhase] = useState<"idle" | "recording" | "stopping" | "transcribing">("idle");
   const mobileRecorderRef = useRef<MediaRecorder | null>(null);
   const mobileSessionCounterRef = useRef(0);
   const mobileStateRef = useRef<"idle" | "recording" | "transcribing">("idle");
@@ -53,14 +53,6 @@ export default function InterestForm({ showBackHome = false }: { showBackHome?: 
     recorder: MediaRecorder;
     stream: MediaStream;
   } | null>(null);
-  const desktopSessionRef = useRef<{
-    fieldName: string;
-    finalSegments: string[];
-    seenFinals: Set<string>;
-    stopRequested: boolean;
-  } | null>(null);
-  const finalizedIndicesRef = useRef<Set<number>>(new Set());
-
   const visibleSection = useMemo(() => sectionMap[selectedService] ?? null, [selectedService]);
 
   useEffect(() => {
@@ -82,6 +74,7 @@ export default function InterestForm({ showBackHome = false }: { showBackHome?: 
       mobileSessionRef.current = null;
       mobileRecorderRef.current = null;
       mobileStateRef.current = "idle";
+      setSttPhase("idle");
     };
   }, []);
 
@@ -182,10 +175,6 @@ export default function InterestForm({ showBackHome = false }: { showBackHome?: 
     field.value = "";
   };
 
-  const isMobile = () =>
-    typeof navigator !== "undefined" &&
-    /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-
   const startMobileRecording = async (fieldName: string) => {
     if (mobileStateRef.current !== "idle") return;
     setSttError(null);
@@ -213,6 +202,7 @@ export default function InterestForm({ showBackHome = false }: { showBackHome?: 
       mobileSessionRef.current = session;
       mobileRecorderRef.current = recorder;
       mobileStateRef.current = "recording";
+      setSttPhase("recording");
 
       recorder.ondataavailable = (event: BlobEvent) => {
         if (event.data && event.data.size > 0) {
@@ -229,6 +219,7 @@ export default function InterestForm({ showBackHome = false }: { showBackHome?: 
         }
         mobileRecorderRef.current = null;
         mobileStateRef.current = "transcribing";
+        setSttPhase("transcribing");
         setSttListening(false);
         setActiveField(null);
 
@@ -255,6 +246,7 @@ export default function InterestForm({ showBackHome = false }: { showBackHome?: 
           setSttError(err instanceof Error ? err.message : "Transcription failed");
         } finally {
           mobileStateRef.current = "idle";
+          setSttPhase("idle");
         }
       };
 
@@ -267,6 +259,7 @@ export default function InterestForm({ showBackHome = false }: { showBackHome?: 
         mobileSessionRef.current = null;
         mobileRecorderRef.current = null;
         mobileStateRef.current = "idle";
+        setSttPhase("idle");
         setSttListening(false);
         setActiveField(null);
         setSttError("Could not capture audio. Please check microphone permissions.");
@@ -277,6 +270,7 @@ export default function InterestForm({ showBackHome = false }: { showBackHome?: 
       recorder.start();
     } catch {
       mobileStateRef.current = "idle";
+      setSttPhase("idle");
       setSttListening(false);
       setActiveField(null);
       setSttError("Could not capture audio. Please check microphone permissions.");
@@ -286,102 +280,34 @@ export default function InterestForm({ showBackHome = false }: { showBackHome?: 
   const toggleStt = (fieldName: string) => {
     if (typeof window === "undefined") return;
 
-    if (isMobile()) {
-      if (sttListening && mobileRecorderRef.current && activeField !== fieldName) {
-        return;
-      }
-      if (sttListening && mobileRecorderRef.current && activeField === fieldName) {
-        if (mobileRecorderRef.current.state !== "inactive") {
-          mobileRecorderRef.current.stop();
-        }
-        setSttListening(false);
-        setActiveField(null);
-        return;
-      }
-      startMobileRecording(fieldName);
+    if (sttPhase === "stopping" || sttPhase === "transcribing") {
       return;
     }
 
-    const SpeechRecognition =
-      (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-
-    if (!SpeechRecognition) {
-      setSttError("Speech-to-text is not supported in this browser.");
+    if (sttListening && mobileRecorderRef.current && activeField !== fieldName) {
       return;
     }
-
-    if (sttListening && recognitionRef.current && activeField === fieldName) {
-      if (desktopSessionRef.current) {
-        desktopSessionRef.current.stopRequested = true;
+    if (sttListening && mobileRecorderRef.current && activeField === fieldName) {
+      if (mobileRecorderRef.current.state !== "inactive") {
+        setSttPhase("stopping");
+        mobileRecorderRef.current.stop();
       }
-      recognitionRef.current.stop();
       return;
     }
-
-    setSttError(null);
-    const recognition = new SpeechRecognition();
-    recognition.lang = sttLanguage;
-    recognition.continuous = true;
-    recognition.interimResults = true;
-
-    recognition.onstart = () => {
-      desktopSessionRef.current = {
-        fieldName,
-        finalSegments: [],
-        seenFinals: new Set<string>(),
-        stopRequested: false
-      };
-      setSttListening(true);
-      setActiveField(fieldName);
-    };
-    recognition.onend = () => {
-      const session = desktopSessionRef.current;
-      const shouldCommit =
-        !!session &&
-        session.stopRequested &&
-        session.fieldName === fieldName;
-
-      if (shouldCommit) {
-        const bufferedText = session.finalSegments.join(" ").replace(/\s+/g, " ").trim();
-        if (bufferedText) {
-          appendToField(fieldName, bufferedText);
-        }
-      }
-
-      desktopSessionRef.current = null;
-      // Reset Set on each session end so new session indices aren't blocked
-      finalizedIndicesRef.current = new Set();
-      setSttListening(false);
-      setActiveField(null);
-    };
-    recognition.onerror = (event: any) => {
-      if (event.error === 'no-speech' || event.error === 'audio-capture') return;
-      setSttListening(false);
-      setSttError("Could not capture audio. Please check microphone permissions.");
-    };
-    recognition.onresult = (event: any) => {
-      const session = desktopSessionRef.current;
-      if (!session || session.fieldName !== fieldName) return;
-
-      for (let i = event.resultIndex; i < event.results.length; i += 1) {
-        const segment = event.results[i][0].transcript || "";
-        if (event.results[i].isFinal) {
-          if (!finalizedIndicesRef.current.has(i)) {
-            const normalizedSegment = segment.replace(/\s+/g, " ").trim().toLowerCase();
-            if (normalizedSegment && !session.seenFinals.has(normalizedSegment)) {
-              session.seenFinals.add(normalizedSegment);
-              session.finalSegments.push(segment.trim());
-            }
-            finalizedIndicesRef.current.add(i);
-          }
-        }
-      }
-    };
-
-    recognitionRef.current = recognition;
-    finalizedIndicesRef.current = new Set();
-    recognition.start();
+    startMobileRecording(fieldName);
   };
+
+  const getSttButtonLabel = (fieldName: string) => {
+    if (activeField === fieldName && sttPhase === "recording") return "Stop Speech to Text";
+    if (activeField === fieldName && sttPhase === "stopping") return "Stopping...";
+    if (activeField === fieldName && sttPhase === "transcribing") return "Transcribing...";
+    return "Start Speech to Text";
+  };
+
+  const isSttButtonDisabled = (fieldName: string) =>
+    sttPhase === "stopping" ||
+    sttPhase === "transcribing" ||
+    ((sttPhase === "recording" || sttListening) && activeField !== fieldName);
 
   const renderFieldActions = (fieldName: string) => (
     <div className={css.sttRow}>
@@ -389,8 +315,9 @@ export default function InterestForm({ showBackHome = false }: { showBackHome?: 
         type="button"
         className={`${css.sttBtn} ${sttListening && activeField === fieldName ? css.sttBtnActive : ""}`}
         onClick={() => toggleStt(fieldName)}
+        disabled={isSttButtonDisabled(fieldName)}
       >
-        {sttListening && activeField === fieldName ? "Stop Speech to Text" : "Start Speech to Text"}
+        {getSttButtonLabel(fieldName)}
       </button>
       <button type="button" className={css.clearBtn} onClick={() => clearField(fieldName)}>
         Clear
