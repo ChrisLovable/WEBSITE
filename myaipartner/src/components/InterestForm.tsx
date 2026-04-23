@@ -40,14 +40,17 @@ export default function InterestForm({ showBackHome = false }: { showBackHome?: 
   const [sttLanguage, setSttLanguage] = useState<"af-ZA" | "en-ZA">("en-ZA");
   const [activeField, setActiveField] = useState<string | null>(null);
   const recognitionRef = useRef<any>(null);
-  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
-  const mobileStreamRef = useRef<MediaStream | null>(null);
-  const isTranscribingRef = useRef(false);
-  const mobileTranscribeTailRef = useRef<Promise<void>>(Promise.resolve());
-  const mobileSessionSeqRef = useRef(0);
-  const mobileActiveSessionRef = useRef<number | null>(null);
-  const mobileCommittedSessionsRef = useRef<Set<number>>(new Set());
-  const mobileLastCommittedTextRef = useRef<Record<string, string>>({});
+  const mobileRecorderRef = useRef<MediaRecorder | null>(null);
+  const mobileSessionCounterRef = useRef(0);
+  const mobileStateRef = useRef<"idle" | "recording" | "transcribing">("idle");
+  const mobileSessionRef = useRef<{
+    id: number;
+    fieldName: string;
+    chunks: Blob[];
+    committed: boolean;
+    recorder: MediaRecorder;
+    stream: MediaStream;
+  } | null>(null);
   const finalizedIndicesRef = useRef<Set<number>>(new Set());
   const finalizedTextRef = useRef<Record<string, string>>({});
 
@@ -62,14 +65,16 @@ export default function InterestForm({ showBackHome = false }: { showBackHome?: 
   useEffect(() => {
     return () => {
       try {
-        if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
-          mediaRecorderRef.current.stop();
+        if (mobileRecorderRef.current && mobileRecorderRef.current.state !== "inactive") {
+          mobileRecorderRef.current.stop();
         }
       } catch {
         // no-op cleanup guard
       }
-      mobileStreamRef.current?.getTracks().forEach((track) => track.stop());
-      mobileStreamRef.current = null;
+      mobileSessionRef.current?.stream.getTracks().forEach((track) => track.stop());
+      mobileSessionRef.current = null;
+      mobileRecorderRef.current = null;
+      mobileStateRef.current = "idle";
     };
   }, []);
 
@@ -148,7 +153,7 @@ export default function InterestForm({ showBackHome = false }: { showBackHome?: 
     /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 
   const startMobileRecording = async (fieldName: string) => {
-    if (isTranscribingRef.current || mediaRecorderRef.current) return;
+    if (mobileStateRef.current !== "idle") return;
     setSttError(null);
 
     try {
@@ -161,10 +166,42 @@ export default function InterestForm({ showBackHome = false }: { showBackHome?: 
       const mimeType = MediaRecorder.isTypeSupported("audio/webm;codecs=opus")
         ? "audio/webm;codecs=opus"
         : "audio/webm";
-      const transcribeBlob = async (blob: Blob) => {
-        if (!blob || blob.size < 1800) return;
-        isTranscribingRef.current = true;
+      const recorder = new MediaRecorder(stream, { mimeType });
+      const sessionId = ++mobileSessionCounterRef.current;
+      const session = {
+        id: sessionId,
+        fieldName,
+        chunks: [] as Blob[],
+        committed: false,
+        recorder,
+        stream
+      };
+      mobileSessionRef.current = session;
+      mobileRecorderRef.current = recorder;
+      mobileStateRef.current = "recording";
+
+      recorder.ondataavailable = (event: BlobEvent) => {
+        if (event.data && event.data.size > 0) {
+          session.chunks.push(event.data);
+        }
+      };
+
+      const commitSession = async () => {
+        if (session.committed) return;
+        session.committed = true;
+        session.stream.getTracks().forEach((track) => track.stop());
+        if (mobileSessionRef.current?.id === session.id) {
+          mobileSessionRef.current = null;
+        }
+        mobileRecorderRef.current = null;
+        mobileStateRef.current = "transcribing";
+        setSttListening(false);
+        setActiveField(null);
+
         try {
+          const blob = new Blob(session.chunks, { type: mimeType });
+          if (!blob || blob.size < 1800) return;
+
           const formData = new FormData();
           formData.append("audio", new File([blob], "recording.webm", { type: mimeType }));
           formData.append("language", sttLanguage.startsWith("af") ? "af" : "en");
@@ -178,62 +215,34 @@ export default function InterestForm({ showBackHome = false }: { showBackHome?: 
 
           const transcript = String(data?.transcript || "").trim();
           if (transcript) {
-            const normalizedTranscript = transcript.replace(/\s+/g, " ").trim().toLowerCase();
-            const previousNormalized = (mobileLastCommittedTextRef.current[fieldName] || "").toLowerCase();
-            if (normalizedTranscript && normalizedTranscript !== previousNormalized) {
-              mobileLastCommittedTextRef.current[fieldName] = normalizedTranscript;
-              appendToField(fieldName, transcript);
-            }
+            appendToField(session.fieldName, transcript);
           }
         } catch (err: unknown) {
           setSttError(err instanceof Error ? err.message : "Transcription failed");
         } finally {
-          isTranscribingRef.current = false;
+          mobileStateRef.current = "idle";
         }
       };
 
-      const recorder = new MediaRecorder(stream, { mimeType });
-      const sessionId = ++mobileSessionSeqRef.current;
-      const sessionChunks: Blob[] = [];
-      mobileStreamRef.current = stream;
-      mobileActiveSessionRef.current = sessionId;
-
-      recorder.ondataavailable = (event: BlobEvent) => {
-        if (event.data && event.data.size > 0) {
-          sessionChunks.push(event.data);
-        }
-      };
-
-      recorder.onstop = async () => {
-        const chunksSnapshot = sessionChunks.slice();
-        mobileStreamRef.current?.getTracks().forEach((track) => track.stop());
-        mobileStreamRef.current = null;
-        mediaRecorderRef.current = null;
-        if (mobileActiveSessionRef.current === sessionId) {
-          mobileActiveSessionRef.current = null;
-        }
-        if (mobileCommittedSessionsRef.current.has(sessionId)) return;
-        mobileCommittedSessionsRef.current.add(sessionId);
-
-        const blob = new Blob(chunksSnapshot, { type: mimeType });
-        const job = mobileTranscribeTailRef.current.then(async () => {
-          await transcribeBlob(blob);
-        });
-        mobileTranscribeTailRef.current = job.catch(() => {});
-        await job;
+      recorder.onstop = () => {
+        void commitSession();
       };
 
       recorder.onerror = () => {
+        session.stream.getTracks().forEach((track) => track.stop());
+        mobileSessionRef.current = null;
+        mobileRecorderRef.current = null;
+        mobileStateRef.current = "idle";
         setSttListening(false);
         setActiveField(null);
         setSttError("Could not capture audio. Please check microphone permissions.");
       };
 
-      mediaRecorderRef.current = recorder;
       setSttListening(true);
       setActiveField(fieldName);
       recorder.start();
     } catch {
+      mobileStateRef.current = "idle";
       setSttListening(false);
       setActiveField(null);
       setSttError("Could not capture audio. Please check microphone permissions.");
@@ -244,11 +253,13 @@ export default function InterestForm({ showBackHome = false }: { showBackHome?: 
     if (typeof window === "undefined") return;
 
     if (isMobile()) {
-      if (sttListening && mediaRecorderRef.current && activeField !== fieldName) {
+      if (sttListening && mobileRecorderRef.current && activeField !== fieldName) {
         return;
       }
-      if (sttListening && mediaRecorderRef.current && activeField === fieldName) {
-        mediaRecorderRef.current.stop();
+      if (sttListening && mobileRecorderRef.current && activeField === fieldName) {
+        if (mobileRecorderRef.current.state !== "inactive") {
+          mobileRecorderRef.current.stop();
+        }
         setSttListening(false);
         setActiveField(null);
         return;
