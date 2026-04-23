@@ -33,7 +33,10 @@ export default function HomePage() {
                   />
                 </svg>
               </button>
-              <h1 className="font-tech text-[1.85rem] sm:text-5xl md:text-6xl lg:text-7xl font-black tracking-tight leading-[1.05] italic text-cyan-300">
+              <h1 className="sm:hidden text-[1.85rem] font-semibold tracking-tight leading-[1.08] text-cyan-300">
+                <span className="text-white">A</span>rchitects of <span className="text-white">I</span>ntelligence
+              </h1>
+              <h1 className="hidden sm:block font-tech text-5xl md:text-6xl lg:text-7xl font-black tracking-tight leading-[1.05] italic text-cyan-300">
                 <span className="text-white">A</span>rchitects of <span className="text-white">I</span>ntelligence
               </h1>
             </div>
