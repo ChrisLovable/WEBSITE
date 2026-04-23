@@ -37,13 +37,26 @@ export default function InterestForm({ showBackHome = false }: { showBackHome?: 
   const [error, setError] = useState<string | null>(null);
   const [sttListening, setSttListening] = useState(false);
   const [sttError, setSttError] = useState<string | null>(null);
-  const [sttLanguage, setSttLanguage] = useState<"af-ZA" | "en-ZA">("af-ZA");
+  const [sttLanguage, setSttLanguage] = useState<"af-ZA" | "en-ZA">("en-ZA");
   const [activeField, setActiveField] = useState<string | null>(null);
   const recognitionRef = useRef<any>(null);
-  const lastProcessedIndexRef = useRef<number>(0);
-  const lastAppendedRef = useRef<string>("");
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const mobileStreamRef = useRef<MediaStream | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
+  const isTranscribingRef = useRef(false);
+  const mobileTranscribeBusyRef = useRef(false);
+  const pendingMobileChunksRef = useRef<Blob[]>([]);
+  const lastMobileChunkTextRef = useRef<string>("");
+  const finalizedIndicesRef = useRef<Set<number>>(new Set());
+  const finalizedTextRef = useRef<Record<string, string>>({});
 
   const visibleSection = useMemo(() => sectionMap[selectedService] ?? null, [selectedService]);
+
+  useEffect(() => {
+    if (typeof navigator === "undefined") return;
+    const navLang = (navigator.language || "").toLowerCase();
+    setSttLanguage(navLang.startsWith("af") ? "af-ZA" : "en-ZA");
+  }, []);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -115,8 +128,115 @@ export default function InterestForm({ showBackHome = false }: { showBackHome?: 
     field.value = "";
   };
 
+  const isMobile = () =>
+    typeof navigator !== "undefined" &&
+    /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+  const startMobileRecording = async (fieldName: string) => {
+    if (isTranscribingRef.current) return;
+    setSttError(null);
+
+    try {
+      if (typeof MediaRecorder === "undefined" || !navigator.mediaDevices?.getUserMedia) {
+        setSttError("Speech-to-text is not supported in this browser.");
+        return;
+      }
+
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mimeType = MediaRecorder.isTypeSupported("audio/webm;codecs=opus")
+        ? "audio/webm;codecs=opus"
+        : "audio/webm";
+
+      const transcribeChunk = async (chunk: Blob) => {
+        const formData = new FormData();
+        formData.append("audio", new File([chunk], "recording.webm", { type: mimeType }));
+        formData.append("language", sttLanguage.startsWith("af") ? "af" : "en");
+
+        const response = await fetch("/api/transcribe", {
+          method: "POST",
+          body: formData,
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data?.error || "Transcription failed");
+
+        const transcript = String(data?.transcript || "").replace(/\s+/g, " ").trim();
+        const dedupeKey = transcript.toLowerCase();
+        if (transcript && dedupeKey !== lastMobileChunkTextRef.current) {
+          lastMobileChunkTextRef.current = dedupeKey;
+          appendToField(fieldName, transcript);
+        }
+      };
+
+      const processPendingChunks = async () => {
+        if (mobileTranscribeBusyRef.current) return;
+        const nextChunk = pendingMobileChunksRef.current.shift();
+        if (!nextChunk) return;
+        mobileTranscribeBusyRef.current = true;
+        try {
+          await transcribeChunk(nextChunk);
+        } catch (err: unknown) {
+          setSttError(err instanceof Error ? err.message : "Transcription failed");
+        } finally {
+          mobileTranscribeBusyRef.current = false;
+          if (pendingMobileChunksRef.current.length > 0) {
+            void processPendingChunks();
+          }
+        }
+      };
+
+      const recorder = new MediaRecorder(stream, { mimeType });
+      mobileStreamRef.current = stream;
+      audioChunksRef.current = [];
+      pendingMobileChunksRef.current = [];
+      lastMobileChunkTextRef.current = "";
+
+      recorder.ondataavailable = (event: BlobEvent) => {
+        if (event.data && event.data.size > 0) {
+          pendingMobileChunksRef.current.push(event.data);
+          void processPendingChunks();
+        }
+      };
+
+      recorder.onstop = async () => {
+        mobileStreamRef.current?.getTracks().forEach((track) => track.stop());
+        mobileStreamRef.current = null;
+        mediaRecorderRef.current = null;
+        audioChunksRef.current = [];
+      };
+
+      recorder.onerror = () => {
+        setSttListening(false);
+        setActiveField(null);
+        setSttError("Could not capture audio. Please check microphone permissions.");
+      };
+
+      mediaRecorderRef.current = recorder;
+      setSttListening(true);
+      setActiveField(fieldName);
+      recorder.start(1200);
+    } catch {
+      setSttListening(false);
+      setActiveField(null);
+      setSttError("Could not capture audio. Please check microphone permissions.");
+    }
+  };
+
   const toggleStt = (fieldName: string) => {
     if (typeof window === "undefined") return;
+
+    if (isMobile()) {
+      if (sttListening && mediaRecorderRef.current && activeField === fieldName) {
+        mediaRecorderRef.current.stop();
+        mobileStreamRef.current?.getTracks().forEach((track) => track.stop());
+        mobileStreamRef.current = null;
+        setSttListening(false);
+        setActiveField(null);
+        return;
+      }
+      startMobileRecording(fieldName);
+      return;
+    }
+
     const SpeechRecognition =
       (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
 
@@ -141,35 +261,42 @@ export default function InterestForm({ showBackHome = false }: { showBackHome?: 
       setActiveField(fieldName);
     };
     recognition.onend = () => {
+      // Reset Set on each session end so new session indices aren't blocked
+      finalizedIndicesRef.current = new Set();
       setSttListening(false);
       setActiveField(null);
     };
-    recognition.onerror = () => {
+    recognition.onerror = (event: any) => {
+      if (event.error === 'no-speech' || event.error === 'audio-capture') return;
       setSttListening(false);
       setSttError("Could not capture audio. Please check microphone permissions.");
     };
     recognition.onresult = (event: any) => {
-      let finalTranscript = "";
-      const startIndex = Math.max(event.resultIndex, lastProcessedIndexRef.current);
-      for (let i = startIndex; i < event.results.length; i += 1) {
-        const transcript = event.results[i][0].transcript;
+      let interimTranscript = "";
+      let newFinalText = "";
+
+      for (let i = event.resultIndex; i < event.results.length; i += 1) {
+        const segment = event.results[i][0].transcript || "";
         if (event.results[i].isFinal) {
-          finalTranscript += transcript + " ";
+          if (!finalizedIndicesRef.current.has(i)) {
+            newFinalText += segment + " ";
+            finalizedIndicesRef.current.add(i);
+          }
+        } else {
+          interimTranscript += segment;
         }
       }
-      lastProcessedIndexRef.current = event.results.length;
 
-      const normalizedFinal = finalTranscript.replace(/\s+/g, " ").trim();
-      const dedupeKey = normalizedFinal.toLowerCase();
-      if (!normalizedFinal || dedupeKey === lastAppendedRef.current) return;
-
-      lastAppendedRef.current = dedupeKey;
-      appendToField(fieldName, normalizedFinal);
+      if (newFinalText.trim()) {
+        finalizedTextRef.current[fieldName] =
+          ((finalizedTextRef.current[fieldName] || "") + newFinalText).trimEnd();
+        appendToField(fieldName, newFinalText.trim());
+      }
     };
 
     recognitionRef.current = recognition;
-    lastProcessedIndexRef.current = 0;
-    lastAppendedRef.current = "";
+    finalizedIndicesRef.current = new Set();
+    finalizedTextRef.current[fieldName] = "";
     recognition.start();
   };
 
