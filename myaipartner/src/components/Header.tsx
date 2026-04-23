@@ -5,7 +5,6 @@ import { usePathname } from 'next/navigation';
 import type { Route } from 'next';
 
 export default function Header() {
-  const [theme, setTheme] = useState<'dark' | 'light'>('dark');
   const pathname = usePathname();
   const [hash, setHash] = useState('');
   const serviceLinks = [
@@ -20,26 +19,12 @@ export default function Header() {
   ];
 
   useEffect(() => {
-    const savedTheme = localStorage.getItem('theme-mode') as 'dark' | 'light' | null;
-    const initialTheme = savedTheme || 'dark';
-    setTheme(initialTheme);
-    document.documentElement.classList.toggle('light-mode', initialTheme === 'light');
-  }, []);
-
-  useEffect(() => {
     if (typeof window === 'undefined') return;
     const updateHash = () => setHash(window.location.hash || '');
     updateHash();
     window.addEventListener('hashchange', updateHash);
     return () => window.removeEventListener('hashchange', updateHash);
   }, []);
-
-  const toggleTheme = () => {
-    const nextTheme = theme === 'dark' ? 'light' : 'dark';
-    setTheme(nextTheme);
-    localStorage.setItem('theme-mode', nextTheme);
-    document.documentElement.classList.toggle('light-mode', nextTheme === 'light');
-  };
 
   const activeItem =
     pathname === '/'
@@ -94,13 +79,6 @@ export default function Header() {
               <span className="hidden sm:inline">PRICING & PROCESS</span>
             </Link>
             <Link href="/interest" className={navClass(activeItem === 'contact')}>CONTACT</Link>
-            <button
-              type="button"
-              onClick={toggleTheme}
-              className="hidden lg:inline-flex font-tech px-4 py-2 border border-cyan-400 text-cyan-400 text-xs tracking-wider hover:bg-cyan-400/10 transition-all"
-            >
-              {theme === 'dark' ? 'LIGHT MODE' : 'DARK MODE'}
-            </button>
           </nav>
         </div>
       </div>

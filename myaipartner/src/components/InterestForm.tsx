@@ -16,6 +16,8 @@ const services = [
   { id: "svc_other", value: "Other / Not Sure Yet", icon: "💬", desc: "Tell us your problem and we'll advise" }
 ];
 
+const appTypeOptions = ["Web Application", "Android App", "iOS App", "I don't know yet"];
+
 const sectionMap: Record<string, string | null> = {
   "AI Strategy & Consulting": "sec_consulting",
   "Business Process Automation": "sec_automation",
@@ -82,6 +84,33 @@ export default function InterestForm({ showBackHome = false }: { showBackHome?: 
       mobileStateRef.current = "idle";
     };
   }, []);
+
+  useEffect(() => {
+    const releaseLockedFields = () => {
+      const locked = formRef.current?.querySelectorAll<HTMLInputElement | HTMLTextAreaElement>("[data-stt-locked='1']");
+      locked?.forEach((el) => {
+        el.readOnly = false;
+        el.removeAttribute("data-stt-locked");
+      });
+    };
+
+    if (!sttListening || !activeField) {
+      releaseLockedFields();
+      return;
+    }
+
+    releaseLockedFields();
+    const target = formRef.current?.querySelector<HTMLInputElement | HTMLTextAreaElement>(
+      `[name="${activeField}"]`
+    );
+    if (!target) return;
+    target.readOnly = true;
+    target.setAttribute("data-stt-locked", "1");
+
+    return () => {
+      releaseLockedFields();
+    };
+  }, [sttListening, activeField]);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -475,7 +504,18 @@ export default function InterestForm({ showBackHome = false }: { showBackHome?: 
           <div id="sec_app" className={`${css.formSection} ${css.dynamicSection} ${visibleSection === "sec_app" ? css.visible : ""}`}>
             <div className={css.sectionHeader}><div className={css.sectionNum}>04</div><div className={css.sectionTitle}>App / Software Details</div></div>
             <div className={css.fieldGrid}>
-              <div className={css.field}><label>Type of Application</label><select name="app_type"><option value="">Select type</option><option>Web Application</option><option>Android App</option><option>iOS App</option><option>I don't know yet</option></select></div>
+              <div className={css.field}>
+                <label>Type of Application</label>
+                <div className={css.checkGroup}>
+                  {appTypeOptions.map((option) => (
+                    <label key={option} className={css.checkItem}>
+                      <input type="checkbox" name="app_type" value={option} />
+                      <span className={css.checkBox}></span>
+                      <span className={css.checkText}>{option}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
               <div className={css.field}><label>Primary Users</label><select name="app_users"><option value="">Who will use it?</option><option>Internal staff only</option><option>Customers / clients</option></select></div>
               <div className={css.field}><label>Expected Number of Users</label><select name="expected_users"><option value="">Select range</option><option>1</option><option>2-10</option><option>10-50</option><option>50-100</option><option>100-200</option><option>200+</option><option>1000&apos;s</option></select></div>
               <div className={`${css.field} ${css.span2}`}>
