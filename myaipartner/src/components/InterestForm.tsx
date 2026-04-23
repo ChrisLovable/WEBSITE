@@ -51,8 +51,13 @@ export default function InterestForm({ showBackHome = false }: { showBackHome?: 
     recorder: MediaRecorder;
     stream: MediaStream;
   } | null>(null);
+  const desktopSessionRef = useRef<{
+    fieldName: string;
+    finalSegments: string[];
+    seenFinals: Set<string>;
+    stopRequested: boolean;
+  } | null>(null);
   const finalizedIndicesRef = useRef<Set<number>>(new Set());
-  const finalizedTextRef = useRef<Record<string, string>>({});
 
   const visibleSection = useMemo(() => sectionMap[selectedService] ?? null, [selectedService]);
 
@@ -277,6 +282,9 @@ export default function InterestForm({ showBackHome = false }: { showBackHome?: 
     }
 
     if (sttListening && recognitionRef.current && activeField === fieldName) {
+      if (desktopSessionRef.current) {
+        desktopSessionRef.current.stopRequested = true;
+      }
       recognitionRef.current.stop();
       return;
     }
@@ -288,10 +296,30 @@ export default function InterestForm({ showBackHome = false }: { showBackHome?: 
     recognition.interimResults = true;
 
     recognition.onstart = () => {
+      desktopSessionRef.current = {
+        fieldName,
+        finalSegments: [],
+        seenFinals: new Set<string>(),
+        stopRequested: false
+      };
       setSttListening(true);
       setActiveField(fieldName);
     };
     recognition.onend = () => {
+      const session = desktopSessionRef.current;
+      const shouldCommit =
+        !!session &&
+        session.stopRequested &&
+        session.fieldName === fieldName;
+
+      if (shouldCommit) {
+        const bufferedText = session.finalSegments.join(" ").replace(/\s+/g, " ").trim();
+        if (bufferedText) {
+          appendToField(fieldName, bufferedText);
+        }
+      }
+
+      desktopSessionRef.current = null;
       // Reset Set on each session end so new session indices aren't blocked
       finalizedIndicesRef.current = new Set();
       setSttListening(false);
@@ -303,31 +331,26 @@ export default function InterestForm({ showBackHome = false }: { showBackHome?: 
       setSttError("Could not capture audio. Please check microphone permissions.");
     };
     recognition.onresult = (event: any) => {
-      let interimTranscript = "";
-      let newFinalText = "";
+      const session = desktopSessionRef.current;
+      if (!session || session.fieldName !== fieldName) return;
 
       for (let i = event.resultIndex; i < event.results.length; i += 1) {
         const segment = event.results[i][0].transcript || "";
         if (event.results[i].isFinal) {
           if (!finalizedIndicesRef.current.has(i)) {
-            newFinalText += segment + " ";
+            const normalizedSegment = segment.replace(/\s+/g, " ").trim().toLowerCase();
+            if (normalizedSegment && !session.seenFinals.has(normalizedSegment)) {
+              session.seenFinals.add(normalizedSegment);
+              session.finalSegments.push(segment.trim());
+            }
             finalizedIndicesRef.current.add(i);
           }
-        } else {
-          interimTranscript += segment;
         }
-      }
-
-      if (newFinalText.trim()) {
-        finalizedTextRef.current[fieldName] =
-          ((finalizedTextRef.current[fieldName] || "") + newFinalText).trimEnd();
-        appendToField(fieldName, newFinalText.trim());
       }
     };
 
     recognitionRef.current = recognition;
     finalizedIndicesRef.current = new Set();
-    finalizedTextRef.current[fieldName] = "";
     recognition.start();
   };
 
