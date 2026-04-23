@@ -33,10 +33,8 @@ export default function HomePage() {
                   />
                 </svg>
               </button>
-              <h1 className="font-tech text-[1.85rem] sm:text-5xl md:text-6xl lg:text-7xl font-black tracking-tight leading-[1.05] sm:whitespace-nowrap">
-                <span className="bg-gradient-to-r from-cyan-400 via-teal-300 to-cyan-400 bg-clip-text text-transparent italic">
-                  <span className="text-white">A</span>rchitects of <span className="text-white">I</span>ntelligence
-                </span>
+              <h1 className="font-tech text-[1.85rem] sm:text-5xl md:text-6xl lg:text-7xl font-black tracking-tight leading-[1.05] italic text-cyan-300">
+                <span className="text-white">A</span>rchitects of <span className="text-white">I</span>ntelligence
               </h1>
             </div>
             <div className="mt-6 md:mt-8">
