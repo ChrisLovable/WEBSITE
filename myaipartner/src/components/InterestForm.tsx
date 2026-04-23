@@ -40,6 +40,7 @@ export default function InterestForm({ showBackHome = false }: { showBackHome?: 
   const [sttLanguage, setSttLanguage] = useState<"af-ZA" | "en-ZA">("af-ZA");
   const [activeField, setActiveField] = useState<string | null>(null);
   const recognitionRef = useRef<any>(null);
+  const sttBaseValueRef = useRef<Record<string, string>>({});
 
   const visibleSection = useMemo(() => sectionMap[selectedService] ?? null, [selectedService]);
 
@@ -111,6 +112,7 @@ export default function InterestForm({ showBackHome = false }: { showBackHome?: 
     );
     if (!field) return;
     field.value = "";
+    sttBaseValueRef.current[fieldName] = "";
   };
 
   const toggleStt = (fieldName: string) => {
@@ -135,6 +137,10 @@ export default function InterestForm({ showBackHome = false }: { showBackHome?: 
     recognition.interimResults = true;
 
     recognition.onstart = () => {
+      const field = formRef.current?.querySelector<HTMLInputElement | HTMLTextAreaElement>(
+        `[name="${fieldName}"]`
+      );
+      sttBaseValueRef.current[fieldName] = field?.value.trim() || "";
       setSttListening(true);
       setActiveField(fieldName);
     };
@@ -147,14 +153,26 @@ export default function InterestForm({ showBackHome = false }: { showBackHome?: 
       setSttError("Could not capture audio. Please check microphone permissions.");
     };
     recognition.onresult = (event: any) => {
+      const field = formRef.current?.querySelector<HTMLInputElement | HTMLTextAreaElement>(
+        `[name="${fieldName}"]`
+      );
+      if (!field) return;
+
       let finalTranscript = "";
-      for (let i = event.resultIndex; i < event.results.length; i += 1) {
-        const transcript = event.results[i][0].transcript;
-        if (event.results[i].isFinal) finalTranscript += transcript + " ";
+      let interimTranscript = "";
+      for (let i = 0; i < event.results.length; i += 1) {
+        const transcript = event.results[i][0].transcript.replace(/\s+/g, " ").trim();
+        if (!transcript) continue;
+        if (event.results[i].isFinal) {
+          finalTranscript += `${transcript} `;
+        } else {
+          interimTranscript += `${transcript} `;
+        }
       }
-      if (finalTranscript.trim()) {
-        appendToField(fieldName, finalTranscript.trim());
-      }
+
+      const baseValue = sttBaseValueRef.current[fieldName] || "";
+      const dictatedValue = `${finalTranscript}${interimTranscript}`.replace(/\s+/g, " ").trim();
+      field.value = baseValue && dictatedValue ? `${baseValue} ${dictatedValue}` : (baseValue || dictatedValue);
     };
 
     recognitionRef.current = recognition;
