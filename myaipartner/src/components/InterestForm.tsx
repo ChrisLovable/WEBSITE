@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
+import { FormEvent, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import css from "@/components/InterestForm.module.css";
 
@@ -17,7 +17,6 @@ const services = [
 ];
 
 const appTypeOptions = ["Web Application", "Android App", "iOS App", "I don't know yet"];
-type SttPhase = "idle" | "recording" | "stopping" | "transcribing";
 
 const sectionMap: Record<string, string | null> = {
   "AI Strategy & Consulting": "sec_consulting",
@@ -38,84 +37,7 @@ export default function InterestForm({ showBackHome = false }: { showBackHome?: 
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [sttError, setSttError] = useState<string | null>(null);
-  const [sttLanguage, setSttLanguage] = useState<"af-ZA" | "en-ZA">("en-ZA");
-  const [activeField, setActiveField] = useState<string | null>(null);
-  const [sttPhase, setSttPhase] = useState<SttPhase>("idle");
-  const mobileRecorderRef = useRef<MediaRecorder | null>(null);
-  const mobileSessionCounterRef = useRef(0);
-  const mobileSessionRef = useRef<{
-    id: number;
-    fieldName: string;
-    chunks: Blob[];
-    committed: boolean;
-    stopRequested: boolean;
-    recorder: MediaRecorder;
-    stream: MediaStream;
-  } | null>(null);
   const visibleSection = useMemo(() => sectionMap[selectedService] ?? null, [selectedService]);
-
-  const resetSttUi = () => {
-    setSttPhase("idle");
-    setActiveField(null);
-  };
-
-  const cleanupSession = (sessionId: number) => {
-    const session = mobileSessionRef.current;
-    if (!session || session.id !== sessionId) return;
-    session.stream.getTracks().forEach((track) => track.stop());
-    mobileSessionRef.current = null;
-    mobileRecorderRef.current = null;
-  };
-
-  useEffect(() => {
-    if (typeof navigator === "undefined") return;
-    const navLang = (navigator.language || "").toLowerCase();
-    setSttLanguage(navLang.startsWith("af") ? "af-ZA" : "en-ZA");
-  }, []);
-
-  useEffect(() => {
-    return () => {
-      try {
-        if (mobileRecorderRef.current && mobileRecorderRef.current.state !== "inactive") {
-          mobileRecorderRef.current.stop();
-        }
-      } catch {
-        // no-op cleanup guard
-      }
-      mobileSessionRef.current?.stream.getTracks().forEach((track) => track.stop());
-      mobileSessionRef.current = null;
-      mobileRecorderRef.current = null;
-      resetSttUi();
-    };
-  }, []);
-
-  useEffect(() => {
-    const releaseLockedFields = () => {
-      const locked = formRef.current?.querySelectorAll<HTMLInputElement | HTMLTextAreaElement>("[data-stt-locked='1']");
-      locked?.forEach((el) => {
-        el.readOnly = false;
-        el.removeAttribute("data-stt-locked");
-      });
-    };
-
-    if (sttPhase !== "recording" || !activeField) {
-      releaseLockedFields();
-      return;
-    }
-
-    releaseLockedFields();
-    const target = formRef.current?.querySelector<HTMLInputElement | HTMLTextAreaElement>(
-      `[name="${activeField}"]`
-    );
-    if (!target) return;
-    target.readOnly = true;
-    target.setAttribute("data-stt-locked", "1");
-
-    return () => {
-      releaseLockedFields();
-    };
-  }, [sttPhase, activeField]);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -160,175 +82,7 @@ export default function InterestForm({ showBackHome = false }: { showBackHome?: 
     }
   };
 
-  const appendToField = (fieldName: string, text: string) => {
-    const field = formRef.current?.querySelector<HTMLInputElement | HTMLTextAreaElement>(
-      `[name="${fieldName}"]`
-    );
-    if (!field) return;
-    const cleanedText = text.replace(/\s+/g, " ").trim();
-    if (!cleanedText) return;
-    const previous = field.value.trim();
-    const needsSentenceStart =
-      previous.length === 0 || /[.!?]\s*$/.test(previous);
-
-    const formattedText = needsSentenceStart
-      ? cleanedText.charAt(0).toUpperCase() + cleanedText.slice(1)
-      : cleanedText.charAt(0).toLowerCase() + cleanedText.slice(1);
-
-    const spacer = previous && !/\s$/.test(field.value) ? " " : "";
-    field.value = `${field.value}${spacer}${formattedText}`.trim();
-  };
-
-  const clearField = (fieldName: string) => {
-    const field = formRef.current?.querySelector<HTMLInputElement | HTMLTextAreaElement>(
-      `[name="${fieldName}"]`
-    );
-    if (!field) return;
-    field.value = "";
-  };
-
-  const startMobileRecording = async (fieldName: string) => {
-    if (sttPhase !== "idle") return;
-    setSttError(null);
-
-    try {
-      if (typeof MediaRecorder === "undefined" || !navigator.mediaDevices?.getUserMedia) {
-        setSttError("Speech-to-text is not supported in this browser.");
-        return;
-      }
-
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const mimeType = MediaRecorder.isTypeSupported("audio/webm;codecs=opus")
-        ? "audio/webm;codecs=opus"
-        : "audio/webm";
-      const recorder = new MediaRecorder(stream, { mimeType });
-      const sessionId = ++mobileSessionCounterRef.current;
-      const session = {
-        id: sessionId,
-        fieldName,
-        chunks: [] as Blob[],
-        committed: false,
-        stopRequested: false,
-        recorder,
-        stream
-      };
-      mobileSessionRef.current = session;
-      mobileRecorderRef.current = recorder;
-      setSttPhase("recording");
-
-      recorder.ondataavailable = (event: BlobEvent) => {
-        if (event.data && event.data.size > 0) {
-          session.chunks.push(event.data);
-        }
-      };
-
-      const commitSession = async () => {
-        if (session.committed) return;
-        session.committed = true;
-        cleanupSession(session.id);
-        setSttPhase("transcribing");
-        setActiveField(session.fieldName);
-
-        try {
-          const blob = new Blob(session.chunks, { type: mimeType });
-          if (!blob || blob.size < 1800) return;
-
-          const formData = new FormData();
-          formData.append("audio", new File([blob], "recording.webm", { type: mimeType }));
-          formData.append("language", sttLanguage.startsWith("af") ? "af" : "en");
-
-          const response = await fetch("/api/transcribe", {
-            method: "POST",
-            body: formData,
-          });
-          const data = await response.json();
-          if (!response.ok) throw new Error(data?.error || "Transcription failed");
-
-          const transcript = String(data?.transcript || "").trim();
-          if (transcript) {
-            appendToField(session.fieldName, transcript);
-          }
-        } catch (err: unknown) {
-          setSttError(err instanceof Error ? err.message : "Transcription failed");
-        } finally {
-          resetSttUi();
-        }
-      };
-
-      recorder.onstop = () => {
-        if (!session.stopRequested) {
-          cleanupSession(session.id);
-          resetSttUi();
-          return;
-        }
-        void commitSession();
-      };
-
-      recorder.onerror = () => {
-        cleanupSession(session.id);
-        resetSttUi();
-        setSttError("Could not capture audio. Please check microphone permissions.");
-      };
-
-      setActiveField(fieldName);
-      recorder.start();
-    } catch {
-      resetSttUi();
-      setSttError("Could not capture audio. Please check microphone permissions.");
-    }
-  };
-
-  const toggleStt = (fieldName: string) => {
-    if (typeof window === "undefined") return;
-
-    if (sttPhase === "stopping" || sttPhase === "transcribing") {
-      return;
-    }
-
-    if (sttPhase !== "idle" && activeField !== fieldName) {
-      return;
-    }
-    if (sttPhase === "recording" && mobileRecorderRef.current && activeField === fieldName) {
-      if (mobileRecorderRef.current.state !== "inactive") {
-        setSttPhase("stopping");
-        if (mobileSessionRef.current) {
-          mobileSessionRef.current.stopRequested = true;
-        }
-        mobileRecorderRef.current.stop();
-      }
-      return;
-    }
-    startMobileRecording(fieldName);
-  };
-
-  const getSttButtonLabel = (fieldName: string) => {
-    if (activeField === fieldName && sttPhase === "recording") return "Stop Speech to Text";
-    if (activeField === fieldName && sttPhase === "stopping") return "Stopping...";
-    if (activeField === fieldName && sttPhase === "transcribing") return "Transcribing...";
-    return "Start Speech to Text";
-  };
-
-  const isSttButtonDisabled = (fieldName: string) =>
-    sttPhase === "stopping" ||
-    sttPhase === "transcribing" ||
-    (sttPhase === "recording" && activeField !== fieldName);
-
-  const renderFieldActions = (fieldName: string) => (
-    <div className={css.sttRow}>
-      <button
-        type="button"
-        className={`${css.sttBtn} ${sttPhase === "recording" && activeField === fieldName ? css.sttBtnActive : ""}`}
-        onClick={() => toggleStt(fieldName)}
-        disabled={isSttButtonDisabled(fieldName)}
-      >
-        {getSttButtonLabel(fieldName)}
-      </button>
-      <button type="button" className={css.clearBtn} onClick={() => clearField(fieldName)}>
-        Clear
-      </button>
-      {sttError && activeField === fieldName && <span className={css.sttError}>{sttError}</span>}
-    </div>
-  );
+  const renderFieldActions = (_fieldName: string) => null;
 
   const closeForm = () => {
     if (typeof window !== "undefined" && window.history.length > 1) {
@@ -352,15 +106,6 @@ export default function InterestForm({ showBackHome = false }: { showBackHome?: 
 
       <div className={css.formWrap}>
         <form ref={formRef} onSubmit={handleSubmit} style={{ display: submitted ? "none" : "block" }}>
-          <div className={css.formSection}>
-            <div className={css.field}>
-              <label>Speech to Text Language</label>
-              <select value={sttLanguage} onChange={(e) => setSttLanguage(e.target.value as "af-ZA" | "en-ZA")}>
-                <option value="af-ZA">Afrikaans (South Africa)</option>
-                <option value="en-ZA">English (South Africa)</option>
-              </select>
-            </div>
-          </div>
           <div className={css.formSection}>
             <div className={css.sectionHeader}><div className={css.sectionNum}>01</div><div className={css.sectionTitle}>Your Information</div></div>
             <div className={css.fieldGrid}>
