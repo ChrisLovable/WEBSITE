@@ -17,6 +17,7 @@ const services = [
 ];
 
 const appTypeOptions = ["Web Application", "Android App", "iOS App", "I don't know yet"];
+type SttPhase = "idle" | "recording" | "stopping" | "transcribing";
 
 const sectionMap: Record<string, string | null> = {
   "AI Strategy & Consulting": "sec_consulting",
@@ -37,23 +38,35 @@ export default function InterestForm({ showBackHome = false }: { showBackHome?: 
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [sttListening, setSttListening] = useState(false);
   const [sttError, setSttError] = useState<string | null>(null);
   const [sttLanguage, setSttLanguage] = useState<"af-ZA" | "en-ZA">("en-ZA");
   const [activeField, setActiveField] = useState<string | null>(null);
-  const [sttPhase, setSttPhase] = useState<"idle" | "recording" | "stopping" | "transcribing">("idle");
+  const [sttPhase, setSttPhase] = useState<SttPhase>("idle");
   const mobileRecorderRef = useRef<MediaRecorder | null>(null);
   const mobileSessionCounterRef = useRef(0);
-  const mobileStateRef = useRef<"idle" | "recording" | "transcribing">("idle");
   const mobileSessionRef = useRef<{
     id: number;
     fieldName: string;
     chunks: Blob[];
     committed: boolean;
+    stopRequested: boolean;
     recorder: MediaRecorder;
     stream: MediaStream;
   } | null>(null);
   const visibleSection = useMemo(() => sectionMap[selectedService] ?? null, [selectedService]);
+
+  const resetSttUi = () => {
+    setSttPhase("idle");
+    setActiveField(null);
+  };
+
+  const cleanupSession = (sessionId: number) => {
+    const session = mobileSessionRef.current;
+    if (!session || session.id !== sessionId) return;
+    session.stream.getTracks().forEach((track) => track.stop());
+    mobileSessionRef.current = null;
+    mobileRecorderRef.current = null;
+  };
 
   useEffect(() => {
     if (typeof navigator === "undefined") return;
@@ -73,8 +86,7 @@ export default function InterestForm({ showBackHome = false }: { showBackHome?: 
       mobileSessionRef.current?.stream.getTracks().forEach((track) => track.stop());
       mobileSessionRef.current = null;
       mobileRecorderRef.current = null;
-      mobileStateRef.current = "idle";
-      setSttPhase("idle");
+      resetSttUi();
     };
   }, []);
 
@@ -87,7 +99,7 @@ export default function InterestForm({ showBackHome = false }: { showBackHome?: 
       });
     };
 
-    if (!sttListening || !activeField) {
+    if (sttPhase !== "recording" || !activeField) {
       releaseLockedFields();
       return;
     }
@@ -103,7 +115,7 @@ export default function InterestForm({ showBackHome = false }: { showBackHome?: 
     return () => {
       releaseLockedFields();
     };
-  }, [sttListening, activeField]);
+  }, [sttPhase, activeField]);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -176,7 +188,7 @@ export default function InterestForm({ showBackHome = false }: { showBackHome?: 
   };
 
   const startMobileRecording = async (fieldName: string) => {
-    if (mobileStateRef.current !== "idle") return;
+    if (sttPhase !== "idle") return;
     setSttError(null);
 
     try {
@@ -196,12 +208,12 @@ export default function InterestForm({ showBackHome = false }: { showBackHome?: 
         fieldName,
         chunks: [] as Blob[],
         committed: false,
+        stopRequested: false,
         recorder,
         stream
       };
       mobileSessionRef.current = session;
       mobileRecorderRef.current = recorder;
-      mobileStateRef.current = "recording";
       setSttPhase("recording");
 
       recorder.ondataavailable = (event: BlobEvent) => {
@@ -213,15 +225,9 @@ export default function InterestForm({ showBackHome = false }: { showBackHome?: 
       const commitSession = async () => {
         if (session.committed) return;
         session.committed = true;
-        session.stream.getTracks().forEach((track) => track.stop());
-        if (mobileSessionRef.current?.id === session.id) {
-          mobileSessionRef.current = null;
-        }
-        mobileRecorderRef.current = null;
-        mobileStateRef.current = "transcribing";
+        cleanupSession(session.id);
         setSttPhase("transcribing");
-        setSttListening(false);
-        setActiveField(null);
+        setActiveField(session.fieldName);
 
         try {
           const blob = new Blob(session.chunks, { type: mimeType });
@@ -245,34 +251,29 @@ export default function InterestForm({ showBackHome = false }: { showBackHome?: 
         } catch (err: unknown) {
           setSttError(err instanceof Error ? err.message : "Transcription failed");
         } finally {
-          mobileStateRef.current = "idle";
-          setSttPhase("idle");
+          resetSttUi();
         }
       };
 
       recorder.onstop = () => {
+        if (!session.stopRequested) {
+          cleanupSession(session.id);
+          resetSttUi();
+          return;
+        }
         void commitSession();
       };
 
       recorder.onerror = () => {
-        session.stream.getTracks().forEach((track) => track.stop());
-        mobileSessionRef.current = null;
-        mobileRecorderRef.current = null;
-        mobileStateRef.current = "idle";
-        setSttPhase("idle");
-        setSttListening(false);
-        setActiveField(null);
+        cleanupSession(session.id);
+        resetSttUi();
         setSttError("Could not capture audio. Please check microphone permissions.");
       };
 
-      setSttListening(true);
       setActiveField(fieldName);
       recorder.start();
     } catch {
-      mobileStateRef.current = "idle";
-      setSttPhase("idle");
-      setSttListening(false);
-      setActiveField(null);
+      resetSttUi();
       setSttError("Could not capture audio. Please check microphone permissions.");
     }
   };
@@ -284,12 +285,15 @@ export default function InterestForm({ showBackHome = false }: { showBackHome?: 
       return;
     }
 
-    if (sttListening && mobileRecorderRef.current && activeField !== fieldName) {
+    if (sttPhase !== "idle" && activeField !== fieldName) {
       return;
     }
-    if (sttListening && mobileRecorderRef.current && activeField === fieldName) {
+    if (sttPhase === "recording" && mobileRecorderRef.current && activeField === fieldName) {
       if (mobileRecorderRef.current.state !== "inactive") {
         setSttPhase("stopping");
+        if (mobileSessionRef.current) {
+          mobileSessionRef.current.stopRequested = true;
+        }
         mobileRecorderRef.current.stop();
       }
       return;
@@ -307,13 +311,13 @@ export default function InterestForm({ showBackHome = false }: { showBackHome?: 
   const isSttButtonDisabled = (fieldName: string) =>
     sttPhase === "stopping" ||
     sttPhase === "transcribing" ||
-    ((sttPhase === "recording" || sttListening) && activeField !== fieldName);
+    (sttPhase === "recording" && activeField !== fieldName);
 
   const renderFieldActions = (fieldName: string) => (
     <div className={css.sttRow}>
       <button
         type="button"
-        className={`${css.sttBtn} ${sttListening && activeField === fieldName ? css.sttBtnActive : ""}`}
+        className={`${css.sttBtn} ${sttPhase === "recording" && activeField === fieldName ? css.sttBtnActive : ""}`}
         onClick={() => toggleStt(fieldName)}
         disabled={isSttButtonDisabled(fieldName)}
       >
