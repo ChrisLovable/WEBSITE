@@ -17,7 +17,6 @@ const services = [
 ];
 
 const appTypeOptions = ["Web Application", "Android App", "iOS App", "I don't know yet"];
-const DEBUG_TAG = "[INTEREST-FORM-TRACE]";
 
 const sectionMap: Record<string, string | null> = {
   "AI Strategy & Consulting": "sec_consulting",
@@ -38,96 +37,69 @@ export default function InterestForm({ showBackHome = false }: { showBackHome?: 
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [sttLanguage, setSttLanguage] = useState<"en" | "af" | "hi">("en");
+  const [sttError, setSttError] = useState<string | null>(null);
+  const [sttPhase, setSttPhase] = useState<"idle" | "recording" | "stopping" | "transcribing">("idle");
+  const [activeField, setActiveField] = useState<string | null>(null);
+  const sttPhaseRef = useRef<"idle" | "recording" | "stopping" | "transcribing">("idle");
+  const recorderRef = useRef<MediaRecorder | null>(null);
+  const sessionRef = useRef<{
+    id: number;
+    fieldName: string;
+    chunks: Blob[];
+    stopRequested: boolean;
+    committed: boolean;
+    stream: MediaStream;
+    mimeType: string;
+  } | null>(null);
+  const sessionCounterRef = useRef(0);
   const visibleSection = useMemo(() => sectionMap[selectedService] ?? null, [selectedService]);
 
-  const debugLog = (event: string, details?: Record<string, unknown>) => {
-    console.error({
-      tag: DEBUG_TAG,
-      event,
-      details: details || {},
-      state: {
-        selectedService,
-        visibleSection,
-        submitted,
-        submitting,
-        error
-      },
-      timestamp: new Date().toISOString()
-    });
+  const setPhase = (phase: "idle" | "recording" | "stopping" | "transcribing") => {
+    sttPhaseRef.current = phase;
+    setSttPhase(phase);
   };
 
   useEffect(() => {
-    debugLog("component:mounted");
-    const form = formRef.current;
-    if (!form) return;
+    return () => {
+      try {
+        if (recorderRef.current && recorderRef.current.state !== "inactive") {
+          recorderRef.current.stop();
+        }
+      } catch {
+        // no-op
+      }
+      sessionRef.current?.stream.getTracks().forEach((track) => track.stop());
+      recorderRef.current = null;
+      sessionRef.current = null;
+      sttPhaseRef.current = "idle";
+    };
+  }, []);
 
-    const logEvent = (eventName: string, event: Event) => {
-      const target = event.target as HTMLInputElement | HTMLTextAreaElement | null;
-      const native = event as InputEvent;
-      debugLog(`dom:${eventName}`, {
-        event: eventName,
-        name: target?.name || null,
-        type: target?.type || null,
-        value: target?.value ?? null,
-        checked: typeof (target as HTMLInputElement | null)?.checked === "boolean"
-          ? (target as HTMLInputElement).checked
-          : null,
-        inputType: native.inputType || null,
-        data: native.data || null,
-        isComposing: native.isComposing ?? null,
-        key: (event as KeyboardEvent).key || null
+  useEffect(() => {
+    const releaseLockedFields = () => {
+      const locked = formRef.current?.querySelectorAll<HTMLInputElement | HTMLTextAreaElement>("[data-stt-locked='1']");
+      locked?.forEach((el) => {
+        el.readOnly = false;
+        el.removeAttribute("data-stt-locked");
       });
     };
 
-    const onBeforeInput = (event: Event) => logEvent("beforeinput", event);
-    const onInput = (event: Event) => logEvent("input", event);
-    const onCompositionStart = (event: Event) => logEvent("compositionstart", event);
-    const onCompositionEnd = (event: Event) => logEvent("compositionend", event);
-    const onChange = (event: Event) => logEvent("change", event);
-    const onClick = (event: Event) => logEvent("click", event);
-    const onFocus = (event: Event) => logEvent("focus", event);
-    const onBlur = (event: Event) => logEvent("blur", event);
-    const onKeyDown = (event: Event) => logEvent("keydown", event);
-    const onKeyUp = (event: Event) => logEvent("keyup", event);
-    const onPaste = (event: Event) => logEvent("paste", event);
-    const onSubmit = (event: Event) => logEvent("submit", event);
+    if (sttPhase !== "recording" || !activeField) {
+      releaseLockedFields();
+      return;
+    }
 
-    form.addEventListener("beforeinput", onBeforeInput, true);
-    form.addEventListener("input", onInput, true);
-    form.addEventListener("compositionstart", onCompositionStart, true);
-    form.addEventListener("compositionend", onCompositionEnd, true);
-    form.addEventListener("change", onChange, true);
-    form.addEventListener("click", onClick, true);
-    form.addEventListener("focus", onFocus, true);
-    form.addEventListener("blur", onBlur, true);
-    form.addEventListener("keydown", onKeyDown, true);
-    form.addEventListener("keyup", onKeyUp, true);
-    form.addEventListener("paste", onPaste, true);
-    form.addEventListener("submit", onSubmit, true);
+    releaseLockedFields();
+    const target = formRef.current?.querySelector<HTMLInputElement | HTMLTextAreaElement>(`[name="${activeField}"]`);
+    if (!target) return;
+    target.readOnly = true;
+    target.setAttribute("data-stt-locked", "1");
 
-    return () => {
-      debugLog("component:unmounted");
-      form.removeEventListener("beforeinput", onBeforeInput, true);
-      form.removeEventListener("input", onInput, true);
-      form.removeEventListener("compositionstart", onCompositionStart, true);
-      form.removeEventListener("compositionend", onCompositionEnd, true);
-      form.removeEventListener("change", onChange, true);
-      form.removeEventListener("click", onClick, true);
-      form.removeEventListener("focus", onFocus, true);
-      form.removeEventListener("blur", onBlur, true);
-      form.removeEventListener("keydown", onKeyDown, true);
-      form.removeEventListener("keyup", onKeyUp, true);
-      form.removeEventListener("paste", onPaste, true);
-      form.removeEventListener("submit", onSubmit, true);
-    };
-  }, [debugLog]);
-
-  useEffect(() => {
-    debugLog("state:changed");
-  }, [selectedService, visibleSection, submitted, submitting, error]);
+    return () => releaseLockedFields();
+  }, [sttPhase, activeField]);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
-    debugLog("submit:handler:start");
     event.preventDefault();
     const formEl = event.currentTarget;
     let valid = true;
@@ -137,18 +109,13 @@ export default function InterestForm({ showBackHome = false }: { showBackHome?: 
       if (!field.value.trim()) {
         field.classList.add(css.invalid);
         valid = false;
-        debugLog("submit:required-missing", { fieldName: field.name });
       }
     });
     if (!selectedService) valid = false;
-    if (!valid) {
-      debugLog("submit:validation-failed", { selectedService });
-      return;
-    }
+    if (!valid) return;
 
     setSubmitting(true);
     setError(null);
-    debugLog("submit:validation-passed");
 
     const form = new FormData(formEl);
     const payload = {
@@ -159,38 +126,182 @@ export default function InterestForm({ showBackHome = false }: { showBackHome?: 
       notes: String(form.get("description") || ""),
       service: selectedService
     };
-    debugLog("submit:payload-ready", payload as Record<string, unknown>);
 
     try {
-      debugLog("submit:api-contact:request");
       const res = await fetch("/api/contact", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
       });
-      debugLog("submit:api-contact:response", { ok: res.ok, status: res.status });
       if (!res.ok) throw new Error("Failed to submit");
       setSubmitted(true);
-      debugLog("submit:success");
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : "Something went wrong");
-      debugLog("submit:error", { message: e instanceof Error ? e.message : "Something went wrong" });
     } finally {
       setSubmitting(false);
-      debugLog("submit:finally");
     }
   };
 
-  const renderFieldActions = (_fieldName: string) => null;
+  const appendToField = (fieldName: string, text: string) => {
+    const field = formRef.current?.querySelector<HTMLInputElement | HTMLTextAreaElement>(`[name="${fieldName}"]`);
+    if (!field) return;
+    const cleaned = text.replace(/\s+/g, " ").trim();
+    if (!cleaned) return;
+    const prev = field.value.trim();
+    const spacer = prev && !/\s$/.test(field.value) ? " " : "";
+    field.value = `${field.value}${spacer}${cleaned}`.trim();
+  };
+
+  const clearField = (fieldName: string) => {
+    const field = formRef.current?.querySelector<HTMLInputElement | HTMLTextAreaElement>(`[name="${fieldName}"]`);
+    if (!field) return;
+    field.value = "";
+  };
+
+  const cleanupSession = (sessionId: number) => {
+    const current = sessionRef.current;
+    if (!current || current.id !== sessionId) return;
+    current.stream.getTracks().forEach((track) => track.stop());
+    sessionRef.current = null;
+    recorderRef.current = null;
+  };
+
+  const startSttRecording = async (fieldName: string) => {
+    if (sttPhaseRef.current !== "idle") return;
+    setSttError(null);
+    setActiveField(fieldName);
+    setPhase("recording");
+    try {
+      if (typeof MediaRecorder === "undefined" || !navigator.mediaDevices?.getUserMedia) {
+        setSttError("Speech-to-text is not supported in this browser.");
+        setPhase("idle");
+        setActiveField(null);
+        return;
+      }
+
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mimeType = MediaRecorder.isTypeSupported("audio/webm;codecs=opus")
+        ? "audio/webm;codecs=opus"
+        : "audio/webm";
+      const recorder = new MediaRecorder(stream, { mimeType });
+      const sessionId = ++sessionCounterRef.current;
+      const session = {
+        id: sessionId,
+        fieldName,
+        chunks: [] as Blob[],
+        stopRequested: false,
+        committed: false,
+        stream,
+        mimeType
+      };
+      sessionRef.current = session;
+      recorderRef.current = recorder;
+
+      recorder.ondataavailable = (event: BlobEvent) => {
+        if (event.data && event.data.size > 0) session.chunks.push(event.data);
+      };
+
+      const commitSession = async () => {
+        if (session.committed) return;
+        session.committed = true;
+        cleanupSession(session.id);
+        setPhase("transcribing");
+        setActiveField(session.fieldName);
+        try {
+          const blob = new Blob(session.chunks, { type: session.mimeType });
+          if (!blob || blob.size < 1800) return;
+          const body = new FormData();
+          body.append("audio", new File([blob], "recording.webm", { type: session.mimeType }));
+          body.append("language", sttLanguage);
+          const response = await fetch("/api/transcribe", { method: "POST", body });
+          const data = await response.json();
+          if (!response.ok) throw new Error(data?.error || "Transcription failed");
+          const transcript = String(data?.transcript || "").trim();
+          if (transcript) appendToField(session.fieldName, transcript);
+        } catch (err: unknown) {
+          setSttError(err instanceof Error ? err.message : "Transcription failed");
+        } finally {
+          setPhase("idle");
+          setActiveField(null);
+        }
+      };
+
+      recorder.onstop = () => {
+        if (!session.stopRequested) {
+          cleanupSession(session.id);
+          setPhase("idle");
+          setActiveField(null);
+          return;
+        }
+        void commitSession();
+      };
+
+      recorder.onerror = () => {
+        cleanupSession(session.id);
+        setPhase("idle");
+        setActiveField(null);
+        setSttError("Could not capture audio. Please check microphone permissions.");
+      };
+
+      recorder.start(250);
+    } catch {
+      setPhase("idle");
+      setActiveField(null);
+      setSttError("Could not capture audio. Please check microphone permissions.");
+    }
+  };
+
+  const toggleStt = (fieldName: string) => {
+    if (typeof window === "undefined") return;
+    if (sttPhaseRef.current === "stopping" || sttPhaseRef.current === "transcribing") return;
+    if (sttPhaseRef.current === "recording" && activeField && activeField !== fieldName) return;
+
+    if (sttPhaseRef.current === "recording" && recorderRef.current && activeField === fieldName) {
+      if (recorderRef.current.state !== "inactive") {
+        setPhase("stopping");
+        if (sessionRef.current) sessionRef.current.stopRequested = true;
+        recorderRef.current.stop();
+      }
+      return;
+    }
+
+    void startSttRecording(fieldName);
+  };
+
+  const sttButtonLabel = (fieldName: string) => {
+    if (activeField === fieldName && sttPhase === "recording") return "Stop Speech to Text";
+    if (activeField === fieldName && sttPhase === "stopping") return "Stopping...";
+    if (activeField === fieldName && sttPhase === "transcribing") return "Transcribing...";
+    return "Start Speech to Text";
+  };
+
+  const sttButtonDisabled = (fieldName: string) =>
+    sttPhase === "stopping" ||
+    sttPhase === "transcribing" ||
+    (sttPhase === "recording" && activeField !== fieldName);
+
+  const renderFieldActions = (fieldName: string) => (
+    <div className={css.sttRow}>
+      <button
+        type="button"
+        className={`${css.sttBtn} ${sttPhase === "recording" && activeField === fieldName ? css.sttBtnActive : ""}`}
+        onClick={() => toggleStt(fieldName)}
+        disabled={sttButtonDisabled(fieldName)}
+      >
+        {sttButtonLabel(fieldName)}
+      </button>
+      <button type="button" className={css.clearBtn} onClick={() => clearField(fieldName)}>
+        Clear
+      </button>
+      {sttError && activeField === fieldName && <span className={css.sttError}>{sttError}</span>}
+    </div>
+  );
 
   const closeForm = () => {
-    debugLog("close:clicked");
     if (typeof window !== "undefined" && window.history.length > 1) {
-      debugLog("close:router-back");
       router.back();
       return;
     }
-    debugLog("close:router-push-home");
     router.push("/");
   };
 
@@ -208,6 +319,16 @@ export default function InterestForm({ showBackHome = false }: { showBackHome?: 
 
       <div className={css.formWrap}>
         <form ref={formRef} onSubmit={handleSubmit} style={{ display: submitted ? "none" : "block" }}>
+          <div className={css.formSection}>
+            <div className={css.field}>
+              <label>Speech to Text Language</label>
+              <select value={sttLanguage} onChange={(e) => setSttLanguage(e.target.value as "en" | "af" | "hi")}>
+                <option value="en">English</option>
+                <option value="af">Afrikaans</option>
+                <option value="hi">Hindi</option>
+              </select>
+            </div>
+          </div>
           <div className={css.formSection}>
             <div className={css.sectionHeader}><div className={css.sectionNum}>01</div><div className={css.sectionTitle}>Your Information</div></div>
             <div className={css.fieldGrid}>
@@ -231,10 +352,7 @@ export default function InterestForm({ showBackHome = false }: { showBackHome?: 
                     type="radio"
                     name="service"
                     checked={selectedService === s.value}
-                    onChange={() => {
-                      debugLog("service:selected", { id: s.id, value: s.value });
-                      setSelectedService(s.value);
-                    }}
+                    onChange={() => setSelectedService(s.value)}
                   />
                   <label htmlFor={s.id} className={css.serviceLabel}>
                     <span className={css.serviceIconWrap}>

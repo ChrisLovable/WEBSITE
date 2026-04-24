@@ -4,10 +4,19 @@ export async function POST(req: NextRequest) {
   try {
     const formData = await req.formData();
     const audio = formData.get("audio") as File;
-    const language = (formData.get("language") as string) || "af";
+    const rawLanguage = ((formData.get("language") as string) || "af").toLowerCase();
+    const languageMap: Record<string, string> = {
+      en: "en",
+      af: "af",
+      hi: "hi",
+    };
+    const language = languageMap[rawLanguage];
 
     if (!audio) {
       return NextResponse.json({ error: "No audio file" }, { status: 400 });
+    }
+    if (!language) {
+      return NextResponse.json({ error: `Unsupported language: ${rawLanguage}` }, { status: 400 });
     }
 
     const elFormData = new FormData();

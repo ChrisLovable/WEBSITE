@@ -42,7 +42,11 @@ export default function Header() {
             : 'home';
 
   const navClass = (isActive: boolean) =>
-    `text-[10px] sm:text-xs md:text-sm tracking-wide md:tracking-widest transition-colors ${isActive ? 'text-cyan-400 border-b border-cyan-400 pb-1' : 'text-gray-300 hover:text-cyan-400'}`;
+    `inline-flex items-center justify-center border px-2.5 py-1.5 text-[10px] sm:text-xs md:text-sm tracking-wide md:tracking-widest transition-all ${
+      isActive
+        ? 'border-cyan-400 text-cyan-300 bg-cyan-500/10 shadow-[0_0_12px_rgba(34,211,238,0.35)]'
+        : 'border-cyan-500/45 text-gray-300 hover:text-cyan-300 hover:border-cyan-300/80 hover:bg-cyan-500/5'
+    }`;
 
   return (
     <header className="sticky top-0 z-40 border-b border-cyan-400/40 bg-black/90 backdrop-blur">
