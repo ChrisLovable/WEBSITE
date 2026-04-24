@@ -20,9 +20,7 @@ export default function FreeAppsPage() {
           <div className="space-y-8 border border-cyan-400/50 bg-black/80 p-8 md:p-12 shadow-[0_0_30px_rgba(6,182,212,0.2)]">
             <div className="space-y-3">
               <p className="font-tech text-xs tracking-[0.25em] text-cyan-400">FREE APPS</p>
-              <h1 className="font-tech text-3xl text-cyan-300 md:text-4xl">
-                Coming Soon <span aria-hidden>🚀</span>
-              </h1>
+              <h1 className="font-tech text-3xl text-cyan-300 md:text-4xl">Coming Soon</h1>
               <p className="text-base leading-relaxed text-gray-200 md:text-lg">
                 At MyAIpartner, we&apos;re excited to announce that a collection of free apps will soon be available right
                 here on our platform.
