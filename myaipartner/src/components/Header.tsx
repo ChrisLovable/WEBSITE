@@ -11,6 +11,7 @@ export default function Header() {
     { href: '/services/ai-strategy-business-consulting', label: 'AI Strategy & Business Consulting' },
     { href: '/services/business-process-automation-ai-driven', label: 'Business Process Automation' },
     { href: '/services/custom-software-development-ai-enabled', label: 'Custom Software Development' },
+    { href: '/services/website-design-ai-integration', label: 'Website Design & AI Integration' },
     { href: '/services/mobile-desktop-app-development', label: 'Mobile & Desktop App Development' },
     { href: '/services/ai-training-workforce-enablement', label: 'AI Training & Workforce Enablement' },
     { href: '/services/ediscovery-forensic-ai-querying-email-whatsapp', label: 'Forensic AI Email Investigation' },

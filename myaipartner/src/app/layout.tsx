@@ -58,6 +58,9 @@ export const metadata: Metadata = {
     images: [
       {
         url: '/logo.jpg',
+        width: 818,
+        height: 818,
+        type: 'image/jpeg',
         alt: 'My AI Partner logo'
       }
     ]

@@ -268,7 +268,8 @@
   background-color: #03141c;
 }
 
-.field select {
+.field select,
+.root select {
   cursor: pointer;
   color: var(--text);
   background-color: #03141c;
@@ -277,6 +278,9 @@
   -webkit-appearance: none;
   -moz-appearance: none;
   padding-right: 42px;
+  border-radius: 0;
+  min-height: 44px;
+  line-height: 1.35;
   background-image:
     linear-gradient(45deg, transparent 50%, var(--cyan) 50%),
     linear-gradient(135deg, var(--cyan) 50%, transparent 50%);
@@ -287,18 +291,21 @@
   background-repeat: no-repeat;
 }
 
-.field select:focus {
+.field select:focus,
+.root select:focus {
   background-image:
     linear-gradient(45deg, transparent 50%, #9defff 50%),
     linear-gradient(135deg, #9defff 50%, transparent 50%);
 }
 
-.field select option {
+.field select option,
+.root select option {
   background-color: #03141c;
   color: #d4f6ff;
 }
 
-.field select option:checked {
+.field select option:checked,
+.root select option:checked {
   background-color: rgba(0, 229, 255, 0.2);
   color: #ffffff;
 }
@@ -311,6 +318,85 @@
   resize: vertical;
   min-height: 100px;
   line-height: 1.6;
+}
+
+.customSelectWrap {
+  position: relative;
+}
+
+.customSelectHiddenInput {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+  width: 1px;
+  height: 1px;
+}
+
+.customSelectTrigger {
+  width: 100%;
+  min-height: 44px;
+  border: 1px solid rgba(0, 229, 255, 0.45);
+  background: #03141c;
+  color: var(--text);
+  text-align: left;
+  padding: 12px 14px;
+  font-family: "Exo 2", sans-serif;
+  font-size: 15px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+}
+
+.customSelectTrigger:focus {
+  border-color: var(--cyan);
+  box-shadow: 0 0 0 1px rgba(0, 229, 255, 0.35), 0 0 16px var(--cyan-glow);
+  background: rgba(0, 229, 255, 0.04);
+}
+
+.customSelectCaret {
+  color: var(--cyan);
+  font-size: 12px;
+  margin-left: 10px;
+}
+
+.customSelectMenu {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(100% + 4px);
+  z-index: 20;
+  border: 1px solid rgba(0, 229, 255, 0.6);
+  background: #001a24;
+  box-shadow: 0 0 24px rgba(6, 182, 212, 0.25);
+  max-height: 260px;
+  overflow-y: auto;
+}
+
+.customSelectItem,
+.customSelectItemMuted {
+  display: block;
+  width: 100%;
+  border: 0;
+  border-bottom: 1px solid rgba(0, 229, 255, 0.15);
+  background: transparent;
+  color: #d4f6ff;
+  padding: 10px 12px;
+  text-align: left;
+  font-family: "Exo 2", sans-serif;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.customSelectItemMuted {
+  color: #92c7d8;
+}
+
+.customSelectItem:hover,
+.customSelectItemMuted:hover,
+.customSelectItemActive {
+  background: rgba(0, 229, 255, 0.18);
+  color: #ffffff;
 }
 
 .serviceGrid {
@@ -632,5 +718,37 @@
     padding: 14px 20px;
     font-size: 12px;
     letter-spacing: 1.4px;
+  }
+
+  /* Mobile-tuned dropdowns: consistent, dark, and tap-friendly */
+  .field select,
+  .root select {
+    min-height: 48px;
+    font-size: 16px; /* prevent iOS zoom and match controls */
+    padding: 12px 44px 12px 14px;
+    border: 1px solid rgba(0, 229, 255, 0.55);
+    background-color: #02141a;
+    box-shadow: 0 0 14px rgba(6, 182, 212, 0.18);
+    background-image:
+      linear-gradient(45deg, transparent 50%, #70ecff 50%),
+      linear-gradient(135deg, #70ecff 50%, transparent 50%);
+    background-position:
+      calc(100% - 18px) calc(50% - 2px),
+      calc(100% - 12px) calc(50% - 2px);
+    background-size: 6px 6px, 6px 6px;
+  }
+
+  .field select:focus,
+  .root select:focus {
+    border-color: #70ecff;
+    box-shadow: 0 0 0 1px rgba(0, 229, 255, 0.35), 0 0 18px rgba(0, 229, 255, 0.3);
+    background-color: #04202a;
+  }
+
+  .field select option,
+  .root select option {
+    font-size: 16px;
+    color: #d8f6ff;
+    background: #02141a;
   }
 }

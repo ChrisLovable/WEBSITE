@@ -8,6 +8,7 @@ const services = [
   { id: "svc_consulting", value: "AI Strategy & Consulting", icon: "🧠", desc: "Roadmap, opportunity assessment, AI adoption planning" },
   { id: "svc_automation", value: "Business Process Automation", icon: "⚙️", desc: "Automate repetitive workflows with AI and APIs" },
   { id: "svc_software", value: "Custom Software Development", icon: "💻", desc: "Web platforms, dashboards, portals, internal tools" },
+  { id: "svc_web", value: "Website Design & AI Integration", icon: "🌐", desc: "Modern responsive websites with practical AI features built in" },
   { id: "svc_app", value: "Mobile & Desktop App Development", icon: "📱", desc: "Android, iOS, PWA, cross-platform desktop apps" },
   { id: "svc_training", value: "AI Training & Workforce Enablement", icon: "🎓", desc: "Train your team to use and build with AI" },
   { id: "svc_speaking", value: "Corporate AI Speaking & Executive Briefings", icon: "🎤", desc: "Business-focused AI talks, keynotes, and leadership briefings" },
@@ -22,6 +23,7 @@ const sectionMap: Record<string, string | null> = {
   "AI Strategy & Consulting": "sec_consulting",
   "Business Process Automation": "sec_automation",
   "Custom Software Development": "sec_app",
+  "Website Design & AI Integration": "sec_website",
   "Mobile & Desktop App Development": "sec_app",
   "AI Training & Workforce Enablement": "sec_training",
   "Corporate AI Speaking & Executive Briefings": "sec_speaking",
@@ -397,7 +399,7 @@ export default function InterestForm({ showBackHome = false }: { showBackHome?: 
               <div className={css.field}><label>{tr("Email Address", "E-pos Adres")} <span className={css.req}>*</span></label><input type="email" name="email" required /></div>
               <div className={css.field}><label>{tr("Phone / WhatsApp", "Foon / WhatsApp")} <span className={css.req}>*</span></label><input name="phone" required /></div>
               <div className={css.field}><label>{tr("Company / Organisation", "Maatskappy / Organisasie")} <span className={css.req}>*</span></label><input name="company" required /></div>
-              <div className={css.field}><label>{tr("Industry", "Bedryf")} <span className={css.req}>*</span></label><select name="industry" required><option value="">{tr("Select your industry", "Kies jou bedryf")}</option><option>Agriculture</option><option>Architecture & Engineering</option><option>Automotive</option><option>Construction</option><option>Consulting Services</option><option>Education</option><option>Energy & Utilities</option><option>Financial Services & Fintech</option><option>Government & Public Sector</option><option>Healthcare & Medical</option><option>Hospitality & Tourism</option><option>Human Resources & Recruitment</option><option>Insurance</option><option>Legal Services</option><option>Logistics & Supply Chain</option><option>Manufacturing</option><option>Marketing & Advertising</option><option>Media & Entertainment</option><option>Mining</option><option>Nonprofit & NGO</option><option>Pharmaceuticals & Life Sciences</option><option>Professional Services</option><option>Property & Real Estate</option><option>Retail & eCommerce</option><option>Security & Risk Management</option><option>Technology & Software</option><option>Telecommunications</option><option>Transport</option><option>{tr("Other", "Ander")}</option></select></div>
+              <div className={css.field}><label>{tr("Industry", "Bedryf")} <span className={css.req}>*</span></label><CustomSelect name="industry" required placeholder={tr("Select your industry", "Kies jou bedryf")} options={["Agriculture","Architecture & Engineering","Automotive","Construction","Consulting Services","Education","Energy & Utilities","Financial Services & Fintech","Government & Public Sector","Healthcare & Medical","Hospitality & Tourism","Human Resources & Recruitment","Insurance","Legal Services","Logistics & Supply Chain","Manufacturing","Marketing & Advertising","Media & Entertainment","Mining","Nonprofit & NGO","Pharmaceuticals & Life Sciences","Professional Services","Property & Real Estate","Retail & eCommerce","Security & Risk Management","Technology & Software","Telecommunications","Transport",tr("Other", "Ander")]} /></div>
             </div>
           </div>
 
@@ -405,19 +407,14 @@ export default function InterestForm({ showBackHome = false }: { showBackHome?: 
             <div className={css.sectionHeader}><div className={css.sectionNum}>02</div><div className={css.sectionTitle}>{tr("What Do You Need?", "Wat Het Jy Nodig?")}</div></div>
             <div className={css.field}>
               <label>{tr("Service Required", "Vereiste Diens")} <span className={css.req}>*</span></label>
-              <select
+              <CustomSelect
                 name="service"
                 value={selectedService}
-                onChange={(e) => setSelectedService(e.target.value)}
+                onChange={setSelectedService}
                 required
-              >
-                <option value="">{tr("Select a service", "Kies 'n diens")}</option>
-                {services.map((s) => (
-                  <option key={s.id} value={s.value}>
-                    {s.value}
-                  </option>
-                ))}
-              </select>
+                placeholder={tr("Select a service", "Kies 'n diens")}
+                options={services.map((s) => s.value)}
+              />
             </div>
           </div>
 
@@ -440,10 +437,10 @@ export default function InterestForm({ showBackHome = false }: { showBackHome?: 
           <div id="sec_consulting" className={`${css.formSection} ${css.dynamicSection} ${visibleSection === "sec_consulting" ? css.visible : ""}`}>
             <div className={css.sectionHeader}><div className={css.sectionNum}>04</div><div className={css.sectionTitle}>Consulting Details</div></div>
             <div className={css.fieldGrid}>
-              <div className={css.field}><label>Where are you in your AI journey?</label><select name="ai_maturity"><option value="">Select stage</option><option>Just starting</option><option>Exploring</option><option>Early adoption</option><option>Scaling</option></select></div>
-              <div className={css.field}><label>Primary challenge</label><select name="challenge"><option value="">Select challenge</option><option>High operational costs</option><option>Too much manual work</option><option>Slow decision-making</option><option>Disconnected systems and data silos</option><option>Poor visibility into performance metrics</option><option>Low productivity across teams</option><option>Inconsistent customer experience</option><option>Difficulty scaling operations</option><option>Skills gap for AI adoption</option><option>Compliance and governance concerns</option><option>Legacy systems limiting innovation</option><option>Other</option></select></div>
-              <div className={css.field}><label>Strategic priority</label><select name="consulting_priority"><option value="">Select priority</option><option>Cost reduction</option><option>Revenue growth</option><option>Customer experience</option><option>Operational efficiency</option><option>Risk and compliance</option><option>Faster decision-making</option><option>Digital transformation</option><option>Process standardization</option><option>Product / service innovation</option><option>Workforce productivity</option><option>Improved reporting and analytics</option><option>Market expansion</option><option>Other</option></select></div>
-              <div className={css.field}><label>Who will be involved in decisions?</label><select name="decision_stakeholders"><option value="">Select stakeholders</option><option>Founder / Owner</option><option>Executive team</option><option>Department heads</option><option>Mixed stakeholders</option></select></div>
+              <div className={css.field}><label>Where are you in your AI journey?</label><CustomSelect name="ai_maturity" placeholder="Select stage" options={["Just starting","Exploring","Early adoption","Scaling"]} /></div>
+              <div className={css.field}><label>Primary challenge</label><CustomSelect name="challenge" placeholder="Select challenge" options={["High operational costs","Too much manual work","Slow decision-making","Disconnected systems and data silos","Poor visibility into performance metrics","Low productivity across teams","Inconsistent customer experience","Difficulty scaling operations","Skills gap for AI adoption","Compliance and governance concerns","Legacy systems limiting innovation","Other"]} /></div>
+              <div className={css.field}><label>Strategic priority</label><CustomSelect name="consulting_priority" placeholder="Select priority" options={["Cost reduction","Revenue growth","Customer experience","Operational efficiency","Risk and compliance","Faster decision-making","Digital transformation","Process standardization","Product / service innovation","Workforce productivity","Improved reporting and analytics","Market expansion","Other"]} /></div>
+              <div className={css.field}><label>Who will be involved in decisions?</label><CustomSelect name="decision_stakeholders" placeholder="Select stakeholders" options={["Founder / Owner","Executive team","Department heads","Mixed stakeholders"]} /></div>
               <div className={`${css.field} ${css.span2}`}><label>Current tech stack</label>{renderFieldActions("tech_stack")}<input name="tech_stack" /></div>
             </div>
           </div>
@@ -453,9 +450,9 @@ export default function InterestForm({ showBackHome = false }: { showBackHome?: 
             <div className={`${css.fieldGrid} ${css.one}`}>
               <div className={css.field}><label>Current manual process</label>{renderFieldActions("current_process")}<textarea name="current_process" rows={4} /></div>
               <div className={css.field}><label>Tools involved</label>{renderFieldActions("tools_involved")}<input name="tools_involved" /></div>
-              <div className={css.field}><label>Process frequency</label><select name="process_frequency"><option value="">Select frequency</option><option>Multiple times daily</option><option>Daily</option><option>Weekly</option><option>Monthly</option></select></div>
-              <div className={css.field}><label>Approximate process volume</label><select name="automation_volume"><option value="">Select volume</option><option>Under 100 items/month</option><option>100 - 1,000 items/month</option><option>1,000 - 10,000 items/month</option><option>10,000+ items/month</option></select></div>
-              <div className={css.field}><label>Urgency</label><select name="automation_urgency"><option value="">Select urgency</option><option>Immediate</option><option>Within this quarter</option><option>Within 6 months</option><option>Exploring only</option></select></div>
+              <div className={css.field}><label>Process frequency</label><CustomSelect name="process_frequency" placeholder="Select frequency" options={["Multiple times daily","Daily","Weekly","Monthly"]} /></div>
+              <div className={css.field}><label>Approximate process volume</label><CustomSelect name="automation_volume" placeholder="Select volume" options={["Under 100 items/month","100 - 1,000 items/month","1,000 - 10,000 items/month","10,000+ items/month"]} /></div>
+              <div className={css.field}><label>Urgency</label><CustomSelect name="automation_urgency" placeholder="Select urgency" options={["Immediate","Within this quarter","Within 6 months","Exploring only"]} /></div>
             </div>
           </div>
 
@@ -474,10 +471,10 @@ export default function InterestForm({ showBackHome = false }: { showBackHome?: 
                   ))}
                 </div>
               </div>
-              <div className={css.field}><label>Primary Users</label><select name="app_users"><option value="">Who will use it?</option><option>Internal staff only</option><option>Customers / clients</option></select></div>
-              <div className={css.field}><label>Expected Number of Users</label><select name="expected_users"><option value="">Select range</option><option>1</option><option>2-10</option><option>10-50</option><option>50-100</option><option>100-200</option><option>200+</option><option>1000&apos;s</option></select></div>
-              <div className={css.field}><label>Deployment preference</label><select name="deployment_preference"><option value="">Select preference</option><option>Web only</option><option>Mobile only</option><option>Web + Mobile</option><option>Desktop app</option><option>Not sure yet</option></select></div>
-              <div className={css.field}><label>Data sensitivity / compliance</label><select name="compliance_needs"><option value="">Select level</option><option>Standard business data</option><option>Confidential customer data</option><option>Regulated data (POPIA/other)</option><option>Unsure</option></select></div>
+              <div className={css.field}><label>Primary Users</label><CustomSelect name="app_users" placeholder="Who will use it?" options={["Internal staff only","Customers / clients"]} /></div>
+              <div className={css.field}><label>Expected Number of Users</label><CustomSelect name="expected_users" placeholder="Select range" options={["1","2-10","10-50","50-100","100-200","200+","1000's"]} /></div>
+              <div className={css.field}><label>Deployment preference</label><CustomSelect name="deployment_preference" placeholder="Select preference" options={["Web only","Mobile only","Web + Mobile","Desktop app","Not sure yet"]} /></div>
+              <div className={css.field}><label>Data sensitivity / compliance</label><CustomSelect name="compliance_needs" placeholder="Select level" options={["Standard business data","Confidential customer data","Regulated data (POPIA/other)","Unsure"]} /></div>
               <div className={`${css.field} ${css.span2}`}>
                 <label>Key Features Required</label>
                 <div className={css.checkGroup}>
@@ -502,13 +499,24 @@ export default function InterestForm({ showBackHome = false }: { showBackHome?: 
             </div>
           </div>
 
+          <div id="sec_website" className={`${css.formSection} ${css.dynamicSection} ${visibleSection === "sec_website" ? css.visible : ""}`}>
+            <div className={css.sectionHeader}><div className={css.sectionNum}>04</div><div className={css.sectionTitle}>Website Design & AI Details</div></div>
+            <div className={css.fieldGrid}>
+              <div className={css.field}><label>Website type</label><CustomSelect name="website_type" placeholder="Select website type" options={["Business brochure site","Lead generation website","eCommerce website","Portal / member area","Not sure yet"]} /></div>
+              <div className={css.field}><label>Current website status</label><CustomSelect name="website_status" placeholder="Select status" options={["No website yet","Existing website needs redesign","Existing website needs AI upgrade","Complete rebuild needed"]} /></div>
+              <div className={css.field}><label>Primary website objective</label><CustomSelect name="website_objective" placeholder="Select objective" options={["Generate leads","Increase sales","Improve customer support","Build brand credibility","Educate and inform users"]} /></div>
+              <div className={css.field}><label>AI features needed</label><CustomSelect name="website_ai_features" placeholder="Select focus" options={["AI chatbot","Smart recommendations","Automated content support","Visitor behavior insights","Multiple AI features"]} /></div>
+              <div className={`${css.field} ${css.span2}`}><label>Pages or functionality required</label>{renderFieldActions("website_requirements")}<textarea name="website_requirements" rows={3} placeholder="List pages, integrations, and any must-have functionality." /></div>
+            </div>
+          </div>
+
           <div id="sec_training" className={`${css.formSection} ${css.dynamicSection} ${visibleSection === "sec_training" ? css.visible : ""}`}>
             <div className={css.sectionHeader}><div className={css.sectionNum}>04</div><div className={css.sectionTitle}>Training Details</div></div>
             <div className={css.fieldGrid}>
-              <div className={css.field}><label>People to train</label><select name="training_size"><option value="">Select size</option><option>1-5</option><option>6-15</option><option>16-30</option><option>30+</option></select></div>
-              <div className={css.field}><label>Technical level</label><select name="technical_level"><option value="">Select level</option><option>Non-technical</option><option>Mixed</option><option>Technical</option></select></div>
-              <div className={css.field}><label>Training format</label><select name="training_format"><option value="">Select format</option><option>In-person workshop</option><option>Virtual live session</option><option>Hybrid</option><option>Self-paced + coaching</option></select></div>
-              <div className={css.field}><label>Primary objective</label><select name="training_objective"><option value="">Select objective</option><option>AI awareness and fundamentals</option><option>Productivity with AI tools</option><option>Role-specific AI workflows</option><option>Build internal AI capability</option></select></div>
+              <div className={css.field}><label>People to train</label><CustomSelect name="training_size" placeholder="Select size" options={["1-5","6-15","16-30","30+"]} /></div>
+              <div className={css.field}><label>Technical level</label><CustomSelect name="technical_level" placeholder="Select level" options={["Non-technical","Mixed","Technical"]} /></div>
+              <div className={css.field}><label>Training format</label><CustomSelect name="training_format" placeholder="Select format" options={["In-person workshop","Virtual live session","Hybrid","Self-paced + coaching"]} /></div>
+              <div className={css.field}><label>Primary objective</label><CustomSelect name="training_objective" placeholder="Select objective" options={["AI awareness and fundamentals","Productivity with AI tools","Role-specific AI workflows","Build internal AI capability"]} /></div>
               <div className={`${css.field} ${css.span2}`}><label>Topics of interest</label>{renderFieldActions("training_topics")}<textarea name="training_topics" rows={3} /></div>
             </div>
           </div>
@@ -516,10 +524,10 @@ export default function InterestForm({ showBackHome = false }: { showBackHome?: 
           <div id="sec_speaking" className={`${css.formSection} ${css.dynamicSection} ${visibleSection === "sec_speaking" ? css.visible : ""}`}>
             <div className={css.sectionHeader}><div className={css.sectionNum}>04</div><div className={css.sectionTitle}>Speaking Engagement Details</div></div>
             <div className={css.fieldGrid}>
-              <div className={css.field}><label>Audience type</label><select name="speaking_audience"><option value="">Select audience</option><option>Executive leadership</option><option>Management teams</option><option>Company-wide staff</option><option>External conference/event</option></select></div>
-              <div className={css.field}><label>Primary topic</label><select name="speaking_topic"><option value="">Select topic</option><option>AI strategy for leaders</option><option>AI productivity and automation</option><option>AI risks, governance, and ethics</option><option>Industry-specific AI opportunities</option><option>Future of AI in business</option></select></div>
-              <div className={css.field}><label>Preferred format</label><select name="speaking_format"><option value="">Select format</option><option>Keynote</option><option>Fireside chat</option><option>Panel discussion</option><option>Workshop session</option></select></div>
-              <div className={css.field}><label>Estimated audience size</label><select name="speaking_size"><option value="">Select audience size</option><option>Under 25</option><option>25 - 100</option><option>100 - 500</option><option>500 - 1,000</option><option>1,000+</option></select></div>
+              <div className={css.field}><label>Audience type</label><CustomSelect name="speaking_audience" placeholder="Select audience" options={["Executive leadership","Management teams","Company-wide staff","External conference/event"]} /></div>
+              <div className={css.field}><label>Primary topic</label><CustomSelect name="speaking_topic" placeholder="Select topic" options={["AI strategy for leaders","AI productivity and automation","AI risks, governance, and ethics","Industry-specific AI opportunities","Future of AI in business"]} /></div>
+              <div className={css.field}><label>Preferred format</label><CustomSelect name="speaking_format" placeholder="Select format" options={["Keynote","Fireside chat","Panel discussion","Workshop session"]} /></div>
+              <div className={css.field}><label>Estimated audience size</label><CustomSelect name="speaking_size" placeholder="Select audience size" options={["Under 25","25 - 100","100 - 500","500 - 1,000","1,000+"]} /></div>
               <div className={css.field}><label>Target date</label><input name="speaking_date" placeholder="e.g. 15 September 2026" /></div>
               <div className={`${css.field} ${css.span2}`}><label>What should the audience walk away with?</label>{renderFieldActions("speaking_outcome")}<textarea name="speaking_outcome" rows={3} /></div>
             </div>
@@ -528,12 +536,12 @@ export default function InterestForm({ showBackHome = false }: { showBackHome?: 
           <div id="sec_ediscovery" className={`${css.formSection} ${css.dynamicSection} ${visibleSection === "sec_ediscovery" ? css.visible : ""}`}>
             <div className={css.sectionHeader}><div className={css.sectionNum}>04</div><div className={css.sectionTitle}>eDiscovery & Forensic AI Details</div></div>
             <div className={css.fieldGrid}>
-              <div className={css.field}><label>Matter type</label><select name="ediscovery_matter"><option value="">Select matter type</option><option>Internal investigation</option><option>Litigation support</option><option>Regulatory response</option><option>Fraud/risk investigation</option></select></div>
-              <div className={css.field}><label>Data sources</label><select name="ediscovery_sources"><option value="">Select primary source</option><option>Email only</option><option>WhatsApp only</option><option>Email + WhatsApp</option><option>Mixed sources</option></select></div>
+              <div className={css.field}><label>Matter type</label><CustomSelect name="ediscovery_matter" placeholder="Select matter type" options={["Internal investigation","Litigation support","Regulatory response","Fraud/risk investigation"]} /></div>
+              <div className={css.field}><label>Data sources</label><CustomSelect name="ediscovery_sources" placeholder="Select primary source" options={["Email only","WhatsApp only","Email + WhatsApp","Mixed sources"]} /></div>
               <div className={css.field}><label>Estimated data volume</label><input name="ediscovery_volume" placeholder="e.g. 50 mailboxes, 20 GB exports" /></div>
-              <div className={css.field}><label>Urgency</label><select name="ediscovery_urgency"><option value="">Select urgency</option><option>Immediate (0-7 days)</option><option>High (1-4 weeks)</option><option>Planned (1-3 months)</option></select></div>
-              <div className={css.field}><label>Output required</label><select name="ediscovery_output"><option value="">Select output</option><option>Fact timeline</option><option>Relevant communication bundle</option><option>Risk and pattern report</option><option>All of the above</option></select></div>
-              <div className={css.field}><label>Primary stakeholders</label><select name="ediscovery_stakeholders"><option value="">Select stakeholders</option><option>Legal team</option><option>Compliance / Risk</option><option>Executive team</option><option>External counsel</option></select></div>
+              <div className={css.field}><label>Urgency</label><CustomSelect name="ediscovery_urgency" placeholder="Select urgency" options={["Immediate (0-7 days)","High (1-4 weeks)","Planned (1-3 months)"]} /></div>
+              <div className={css.field}><label>Output required</label><CustomSelect name="ediscovery_output" placeholder="Select output" options={["Fact timeline","Relevant communication bundle","Risk and pattern report","All of the above"]} /></div>
+              <div className={css.field}><label>Primary stakeholders</label><CustomSelect name="ediscovery_stakeholders" placeholder="Select stakeholders" options={["Legal team","Compliance / Risk","Executive team","External counsel"]} /></div>
               <div className={`${css.field} ${css.span2}`}><label>Key questions to answer</label>{renderFieldActions("ediscovery_questions")}<textarea name="ediscovery_questions" rows={3} placeholder="What should AI help surface, verify, or timeline?" /></div>
             </div>
           </div>
@@ -541,10 +549,10 @@ export default function InterestForm({ showBackHome = false }: { showBackHome?: 
           <div id="sec_market" className={`${css.formSection} ${css.dynamicSection} ${visibleSection === "sec_market" ? css.visible : ""}`}>
             <div className={css.sectionHeader}><div className={css.sectionNum}>04</div><div className={css.sectionTitle}>Market Intelligence Details</div></div>
             <div className={css.fieldGrid}>
-              <div className={css.field}><label>Primary focus</label><select name="market_focus"><option value="">Select focus</option><option>Competitor activity tracking</option><option>Pricing and offer changes</option><option>New product/service launches</option><option>Industry trend monitoring</option></select></div>
-              <div className={css.field}><label>How many competitors should be tracked?</label><select name="market_competitor_count"><option value="">Select range</option><option>1 - 3</option><option>4 - 10</option><option>11 - 25</option><option>25+</option></select></div>
-              <div className={css.field}><label>Reporting cadence</label><select name="market_reporting_cadence"><option value="">Select cadence</option><option>Weekly</option><option>Bi-weekly</option><option>Monthly</option><option>Real-time alerts + monthly summary</option></select></div>
-              <div className={css.field}><label>Preferred report format</label><select name="market_report_format"><option value="">Select format</option><option>Executive summary</option><option>Detailed analyst report</option><option>Dashboard + summary</option><option>Email alerts</option></select></div>
+              <div className={css.field}><label>Primary focus</label><CustomSelect name="market_focus" placeholder="Select focus" options={["Competitor activity tracking","Pricing and offer changes","New product/service launches","Industry trend monitoring"]} /></div>
+              <div className={css.field}><label>How many competitors should be tracked?</label><CustomSelect name="market_competitor_count" placeholder="Select range" options={["1 - 3","4 - 10","11 - 25","25+"]} /></div>
+              <div className={css.field}><label>Reporting cadence</label><CustomSelect name="market_reporting_cadence" placeholder="Select cadence" options={["Weekly","Bi-weekly","Monthly","Real-time alerts + monthly summary"]} /></div>
+              <div className={css.field}><label>Preferred report format</label><CustomSelect name="market_report_format" placeholder="Select format" options={["Executive summary","Detailed analyst report","Dashboard + summary","Email alerts"]} /></div>
               <div className={`${css.field} ${css.span2}`}><label>Key markets, competitors, or signals to monitor</label>{renderFieldActions("market_signals")}<textarea name="market_signals" rows={3} placeholder="List competitor names, product lines, regions, keywords, or risk signals." /></div>
             </div>
           </div>
@@ -561,10 +569,10 @@ export default function InterestForm({ showBackHome = false }: { showBackHome?: 
           <div className={css.formSection}>
             <div className={css.sectionHeader}><div className={css.sectionNum}>05</div><div className={css.sectionTitle}>{tr("Timeline & Budget", "Tydlyn en Begroting")}</div></div>
             <div className={css.fieldGrid}>
-              <div className={css.field}><label>{tr("Desired Start Date", "Gewenste Begindatum")}</label><select name="start_date"><option value="">{tr("Select desired start date", "Kies gewenste begindatum")}</option><option>{tr("Immediately", "Onmiddellik")}</option><option>{tr("Within 1 month", "Binne 1 maand")}</option><option>{tr("1-3 months", "1-3 maande")}</option><option>{tr("Just exploring", "Net besig om te verken")}</option></select></div>
-              <div className={css.field}><label>{tr("Estimated Budget Range (ZAR)", "Geskatte Begrotingsreeks (ZAR)")}</label><select name="budget_range"><option value="">{tr("Select budget range", "Kies begrotingsreeks")}</option><option>{tr("Under R50k", "Onder R50k")}</option><option>R50k - R200k</option><option>R200k - R500k</option><option>R500k+</option><option>{tr("Not sure", "Nie seker nie")}</option></select></div>
-              <div className={css.field}><label>{tr("Ideal Completion / Implementation Date", "Ideale Voltooiing / Implementeringsdatum")}</label><select name="ideal_completion_date"><option value="">{tr("Select target completion window", "Kies teiken voltooiingsvenster")}</option><option>{tr("Within 2 weeks", "Binne 2 weke")}</option><option>{tr("Within 1 month", "Binne 1 maand")}</option><option>{tr("1-3 months", "1-3 maande")}</option><option>{tr("3-6 months", "3-6 maande")}</option><option>{tr("6+ months", "6+ maande")}</option><option>{tr("No fixed date yet", "Nog geen vaste datum")}</option></select></div>
-              <div className={css.field}><label>{tr("Number of Intended Users", "Aantal Beoogde Gebruikers")}</label><select name="intended_users"><option value="">{tr("Select user range", "Kies gebruikersreeks")}</option><option>{tr("Single user", "Enkele gebruiker")}</option><option>2-10</option><option>10-50</option><option>50-200</option><option>200-1000</option><option>{tr("1000's", "1000's")}</option></select></div>
+              <div className={css.field}><label>{tr("Desired Start Date", "Gewenste Begindatum")}</label><CustomSelect name="start_date" placeholder={tr("Select desired start date", "Kies gewenste begindatum")} options={[tr("Immediately", "Onmiddellik"),tr("Within 1 month", "Binne 1 maand"),tr("1-3 months", "1-3 maande"),tr("Just exploring", "Net besig om te verken")]} /></div>
+              <div className={css.field}><label>{tr("Estimated Budget Range (ZAR)", "Geskatte Begrotingsreeks (ZAR)")}</label><CustomSelect name="budget_range" placeholder={tr("Select budget range", "Kies begrotingsreeks")} options={[tr("Under R50k", "Onder R50k"),"R50k - R200k","R200k - R500k","R500k+",tr("Not sure", "Nie seker nie")]} /></div>
+              <div className={css.field}><label>{tr("Ideal Completion / Implementation Date", "Ideale Voltooiing / Implementeringsdatum")}</label><CustomSelect name="ideal_completion_date" placeholder={tr("Select target completion window", "Kies teiken voltooiingsvenster")} options={[tr("Within 2 weeks", "Binne 2 weke"),tr("Within 1 month", "Binne 1 maand"),tr("1-3 months", "1-3 maande"),tr("3-6 months", "3-6 maande"),tr("6+ months", "6+ maande"),tr("No fixed date yet", "Nog geen vaste datum")]} /></div>
+              <div className={css.field}><label>{tr("Number of Intended Users", "Aantal Beoogde Gebruikers")}</label><CustomSelect name="intended_users" placeholder={tr("Select user range", "Kies gebruikersreeks")} options={[tr("Single user", "Enkele gebruiker"),"2-10","10-50","50-200","200-1000",tr("1000's", "1000's")]} /></div>
               <div className={`${css.field} ${css.span2}`}><label>{tr("Anything else we should know?", "Enigiets anders wat ons moet weet?")}</label>{renderFieldActions("additional")}<textarea name="additional" rows={3} /></div>
             </div>
           </div>
@@ -585,6 +593,75 @@ export default function InterestForm({ showBackHome = false }: { showBackHome?: 
           <p>{tr("Thank you. We've received your project brief and will review it carefully.", "Dankie. Ons het jou projek opsomming ontvang en sal dit sorgvuldig hersien.")}<br />{tr("Expect a response within one business day.", "Verwag 'n reaksie binne een werksdag.")}</p>
         </div>
       </div>
+    </div>
+  );
+}
+
+function CustomSelect({
+  name,
+  placeholder,
+  options,
+  required = false,
+  value,
+  onChange
+}: {
+  name: string;
+  placeholder: string;
+  options: string[];
+  required?: boolean;
+  value?: string;
+  onChange?: (value: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [internalValue, setInternalValue] = useState("");
+  const wrapRef = useRef<HTMLDivElement>(null);
+  const selected = value ?? internalValue;
+
+  useEffect(() => {
+    const onDocClick = (event: MouseEvent) => {
+      if (!wrapRef.current) return;
+      if (!wrapRef.current.contains(event.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", onDocClick);
+    return () => document.removeEventListener("mousedown", onDocClick);
+  }, []);
+
+  const choose = (next: string) => {
+    if (value === undefined) setInternalValue(next);
+    onChange?.(next);
+    setOpen(false);
+  };
+
+  return (
+    <div ref={wrapRef} className={css.customSelectWrap}>
+      <input type="text" name={name} value={selected} readOnly required={required} className={css.customSelectHiddenInput} />
+      <button
+        type="button"
+        className={css.customSelectTrigger}
+        onClick={() => setOpen((v) => !v)}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+      >
+        <span>{selected || placeholder}</span>
+        <span className={css.customSelectCaret}>▾</span>
+      </button>
+      {open && (
+        <div className={css.customSelectMenu} role="listbox">
+          <button type="button" className={css.customSelectItemMuted} onClick={() => choose("")}>
+            {placeholder}
+          </button>
+          {options.map((option) => (
+            <button
+              key={`${name}-${option}`}
+              type="button"
+              className={`${css.customSelectItem} ${selected === option ? css.customSelectItemActive : ""}`}
+              onClick={() => choose(option)}
+            >
+              {option}
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

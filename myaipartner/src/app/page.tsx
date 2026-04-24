@@ -181,6 +181,24 @@ const serviceCards = [
     ]
   },
   {
+    id: "website-design-ai-integration",
+    href: "/services/website-design-ai-integration",
+    ariaLabel: "Website Design and AI Integration South Africa",
+    afrikaansTitle: "Webwerf Ontwerp en KI Integrasie",
+    icon: "web",
+    title: "Website Design & AI Integration",
+    description:
+      "We design high-performance websites and integrate practical AI features so your site can attract, convert, and support customers more effectively.",
+    outcome: "A modern, conversion-ready website with built-in intelligence to support growth and automation.",
+    points: [
+      "Responsive website design",
+      "AI chat and lead capture",
+      "Smart recommendation features",
+      "Automated content support",
+      "Behavior and conversion insights"
+    ]
+  },
+  {
     id: "mobile-app-development",
     href: "/services/mobile-desktop-app-development",
     ariaLabel: "Mobile and Desktop App Development South Africa",
@@ -323,6 +341,14 @@ function ServiceIcon({ kind }: { kind: string }) {
           <rect x="3" y="4" width="18" height="14" rx="2" />
           <path d="M8 21h8" />
           <path d="M10 18v3M14 18v3" />
+        </svg>
+      );
+    case "web":
+      return (
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className={cls}>
+          <circle cx="12" cy="12" r="9" />
+          <path d="M3 12h18" />
+          <path d="M12 3c2.5 2.7 3.8 5.7 3.8 9s-1.3 6.3-3.8 9c-2.5-2.7-3.8-5.7-3.8-9S9.5 5.7 12 3Z" />
         </svg>
       );
     case "mobile":
