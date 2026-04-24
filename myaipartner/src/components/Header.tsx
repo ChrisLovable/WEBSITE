@@ -35,6 +35,8 @@ export default function Header() {
         ? 'services'
         : pathname === '/pricing-engagement-process'
           ? 'pricing'
+          : pathname === '/free-apps'
+            ? 'free-apps'
           : pathname === '/b-bbee'
             ? 'b-bbee'
             : pathname === '/interest'
@@ -78,6 +80,7 @@ export default function Header() {
               </div>
             </div>
             <Link href="/b-bbee" className={navClass(activeItem === 'b-bbee')}>B-BBEE</Link>
+            <Link href="/free-apps" className={navClass(activeItem === 'free-apps')}>FREE APPS</Link>
             <Link href="/pricing-engagement-process" className={navClass(activeItem === 'pricing')}>
               <span className="sm:hidden">PRICING</span>
               <span className="hidden sm:inline">PRICING & PROCESS</span>
