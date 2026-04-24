@@ -145,6 +145,34 @@
   box-shadow: 0 0 30px var(--cyan-glow);
 }
 
+.infoBanner {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 20px;
+  padding: 6px 2px 10px;
+  border-bottom: 1px dashed rgba(0, 229, 255, 0.35);
+}
+
+.infoBadge {
+  font-family: "Orbitron", sans-serif;
+  font-size: 10px;
+  letter-spacing: 1.4px;
+  color: #001722;
+  background: rgba(0, 229, 255, 0.9);
+  padding: 3px 8px;
+  line-height: 1;
+}
+
+.infoText {
+  margin: 0;
+  color: #bdefff;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
 .sectionHeader {
   display: flex;
   align-items: center;

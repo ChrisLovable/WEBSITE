@@ -385,17 +385,9 @@ export default function InterestForm({ showBackHome = false }: { showBackHome?: 
 
       <div className={css.formWrap}>
         <form ref={formRef} onSubmit={handleSubmit} style={{ display: submitted ? "none" : "block" }}>
-          <div className={css.formSection}>
-            <div className={css.sectionHeader}>
-              <div className={css.sectionNum}>00</div>
-              <div className={css.sectionTitle}>{tr("Speech Settings")}</div>
-            </div>
-            <div className={`${css.fieldGrid} ${css.one}`}>
-              <div className={css.field}>
-                <label>{tr("Speech to Text")}</label>
-                <p className={css.serviceHint}>Please speak clearly in English for best transcription results.</p>
-              </div>
-            </div>
+          <div className={css.infoBanner} role="note" aria-live="polite">
+            <span className={css.infoBadge}>INFO</span>
+            <p className={css.infoText}>Please speak clearly in English for best transcription results.</p>
           </div>
           <div className={css.formSection}>
             <div className={css.sectionHeader}><div className={css.sectionNum}>01</div><div className={css.sectionTitle}>{tr("Your Information", "Jou Inligting")}</div></div>
@@ -405,7 +397,7 @@ export default function InterestForm({ showBackHome = false }: { showBackHome?: 
               <div className={css.field}><label>{tr("Email Address", "E-pos Adres")} <span className={css.req}>*</span></label><input type="email" name="email" required /></div>
               <div className={css.field}><label>{tr("Phone / WhatsApp", "Foon / WhatsApp")} <span className={css.req}>*</span></label><input name="phone" required /></div>
               <div className={css.field}><label>{tr("Company / Organisation", "Maatskappy / Organisasie")} <span className={css.req}>*</span></label><input name="company" required /></div>
-              <div className={css.field}><label>{tr("Industry", "Bedryf")} <span className={css.req}>*</span></label><select name="industry" required><option value="">{tr("Select your industry", "Kies jou bedryf")}</option><option>{tr("Technology & Software", "Tegnologie en Sagteware")}</option><option>{tr("Financial Services & Fintech", "Finansiele Dienste en Fintech")}</option><option>{tr("Healthcare & Medical", "Gesondheidsorg en Medies")}</option><option>{tr("Retail & eCommerce", "Kleinhandel en eHandel")}</option><option>{tr("Other", "Ander")}</option></select></div>
+              <div className={css.field}><label>{tr("Industry", "Bedryf")} <span className={css.req}>*</span></label><select name="industry" required><option value="">{tr("Select your industry", "Kies jou bedryf")}</option><option>Agriculture</option><option>Architecture & Engineering</option><option>Automotive</option><option>Construction</option><option>Consulting Services</option><option>Education</option><option>Energy & Utilities</option><option>Financial Services & Fintech</option><option>Government & Public Sector</option><option>Healthcare & Medical</option><option>Hospitality & Tourism</option><option>Human Resources & Recruitment</option><option>Insurance</option><option>Legal Services</option><option>Logistics & Supply Chain</option><option>Manufacturing</option><option>Marketing & Advertising</option><option>Media & Entertainment</option><option>Mining</option><option>Nonprofit & NGO</option><option>Pharmaceuticals & Life Sciences</option><option>Professional Services</option><option>Property & Real Estate</option><option>Retail & eCommerce</option><option>Security & Risk Management</option><option>Technology & Software</option><option>Telecommunications</option><option>Transport</option><option>{tr("Other", "Ander")}</option></select></div>
             </div>
           </div>
 
