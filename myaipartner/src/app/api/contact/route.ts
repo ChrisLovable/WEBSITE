@@ -4,9 +4,23 @@ import nodemailer from 'nodemailer';
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { name, company, email, phone, notes, services } = body as {
-      name: string; company?: string; email: string; phone?: string; notes?: string; services?: string[];
+    const { name, company, email, phone, notes, service, services } = body as {
+      name: string;
+      company?: string;
+      email: string;
+      phone?: string;
+      notes?: string;
+      service?: string;
+      services?: string[];
     };
+    const mergedServices = Array.from(
+      new Set(
+        [
+          ...(Array.isArray(services) ? services : []),
+          ...(service ? [service] : [])
+        ].filter(Boolean)
+      )
+    );
 
     if (!name || !email) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
@@ -33,7 +47,7 @@ export async function POST(request: Request) {
     }
 
     const subject = `New Interest Submission – ${name}`;
-    const text = `A new interest form submission was received.\n\nName: ${name}\nCompany: ${company || ''}\nEmail: ${email}\nPhone: ${phone || ''}\n\nServices:\n${(services || []).map(s => '- ' + s).join('\n')}\n\nNotes:\n${notes || ''}`;
+    const text = `A new interest form submission was received.\n\nName: ${name}\nCompany: ${company || ''}\nEmail: ${email}\nPhone: ${phone || ''}\n\nServices:\n${mergedServices.map(s => '- ' + s).join('\n')}\n\nNotes:\n${notes || ''}`;
 
     const info = await transporter.sendMail({
       from: `My AI Partner <${user || 'no-reply@myaipartner.co.za'}>`,

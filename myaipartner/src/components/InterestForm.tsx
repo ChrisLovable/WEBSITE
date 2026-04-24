@@ -124,7 +124,8 @@ export default function InterestForm({ showBackHome = false }: { showBackHome?: 
       email: String(form.get("email") || ""),
       phone: String(form.get("phone") || ""),
       notes: String(form.get("description") || ""),
-      service: selectedService
+      service: selectedService,
+      services: selectedService ? [selectedService] : []
     };
 
     try {

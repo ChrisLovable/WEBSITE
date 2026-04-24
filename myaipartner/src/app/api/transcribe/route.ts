@@ -2,6 +2,14 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
   try {
+    const apiKey = process.env.ELEVENLABS_API_KEY?.trim();
+    if (!apiKey) {
+      return NextResponse.json(
+        { error: "Server STT key not configured." },
+        { status: 500 }
+      );
+    }
+
     const formData = await req.formData();
     const audio = formData.get("audio") as File;
     const rawLanguage = ((formData.get("language") as string) || "af").toLowerCase();
@@ -27,14 +35,25 @@ export async function POST(req: NextRequest) {
     const response = await fetch("https://api.elevenlabs.io/v1/speech-to-text", {
       method: "POST",
       headers: {
-        "xi-api-key": process.env.ELEVENLABS_API_KEY || "",
+        "xi-api-key": apiKey,
       },
       body: elFormData,
     });
 
     if (!response.ok) {
-      const err = await response.text();
-      return NextResponse.json({ error: err }, { status: response.status });
+      const errText = await response.text();
+      let message = errText || "Transcription failed";
+      try {
+        const parsed = JSON.parse(errText);
+        message =
+          parsed?.detail?.message ||
+          parsed?.error?.message ||
+          parsed?.message ||
+          message;
+      } catch {
+        // Keep raw text when provider response is not JSON.
+      }
+      return NextResponse.json({ error: message }, { status: response.status });
     }
 
     const data = await response.json();
