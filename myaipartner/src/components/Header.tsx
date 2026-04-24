@@ -51,7 +51,7 @@ export default function Header() {
   return (
     <header className="sticky top-0 z-40 border-b border-cyan-400/40 bg-black/90 backdrop-blur">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-20 md:h-20 gap-2 sm:gap-3">
+        <div className="flex items-center justify-between min-h-20 md:h-20 gap-2 sm:gap-3 py-2 md:py-0">
           <div className="flex items-center gap-2 pt-2 md:pt-32 shrink-0">
             <img
               src="/logo.jpg"
@@ -59,7 +59,7 @@ export default function Header() {
               className="w-12 h-12 sm:w-20 sm:h-20 md:w-48 md:h-48 rounded-full object-cover border-2 border-cyan-500/30 shadow-[0_0_26px_rgba(6,182,212,0.45)] transition-all duration-300 hover:scale-110 hover:shadow-[0_0_60px_rgba(6,182,212,0.7)]"
             />
           </div>
-          <nav className="flex items-center gap-2 sm:gap-5 md:gap-8 font-tech whitespace-nowrap">
+          <nav className="grid grid-cols-3 gap-2 sm:gap-3 md:flex md:items-center md:gap-8 font-tech whitespace-nowrap justify-items-stretch">
             <Link href="/" className={navClass(activeItem === 'home')}>HOME</Link>
             <div className="relative group">
               <button type="button" className={navClass(activeItem === 'services')}>
