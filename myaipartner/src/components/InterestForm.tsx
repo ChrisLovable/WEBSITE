@@ -37,7 +37,7 @@ export default function InterestForm({ showBackHome = false }: { showBackHome?: 
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [sttLanguage, setSttLanguage] = useState<"en" | "af" | "hi">("en");
+  const [sttLanguage, setSttLanguage] = useState<"en" | "af">("en");
   const [sttError, setSttError] = useState<string | null>(null);
   const [sttPhase, setSttPhase] = useState<"idle" | "recording" | "stopping" | "transcribing">("idle");
   const [activeField, setActiveField] = useState<string | null>(null);
@@ -272,8 +272,12 @@ export default function InterestForm({ showBackHome = false }: { showBackHome?: 
           const blob = new Blob(session.chunks, { type: session.mimeType });
           if (!blob || blob.size < 1800) return;
           const body = new FormData();
+          const currentFieldValue =
+            formRef.current?.querySelector<HTMLInputElement | HTMLTextAreaElement>(`[name="${session.fieldName}"]`)?.value || "";
           body.append("audio", new File([blob], "recording.webm", { type: session.mimeType }));
           body.append("language", sttLanguage);
+          body.append("fieldName", session.fieldName);
+          body.append("currentValue", currentFieldValue);
           const response = await fetch("/api/transcribe", { method: "POST", body });
           const data = await response.json();
           if (!response.ok) throw new Error(data?.error || "Transcription failed");
@@ -381,13 +385,18 @@ export default function InterestForm({ showBackHome = false }: { showBackHome?: 
       <div className={css.formWrap}>
         <form ref={formRef} onSubmit={handleSubmit} style={{ display: submitted ? "none" : "block" }}>
           <div className={css.formSection}>
-            <div className={css.field}>
-              <label>Speech to Text Language</label>
-              <select value={sttLanguage} onChange={(e) => setSttLanguage(e.target.value as "en" | "af" | "hi")}>
-                <option value="en">English</option>
-                <option value="af">Afrikaans</option>
-                <option value="hi">Hindi</option>
-              </select>
+            <div className={css.sectionHeader}>
+              <div className={css.sectionNum}>00</div>
+              <div className={css.sectionTitle}>Speech Settings</div>
+            </div>
+            <div className={`${css.fieldGrid} ${css.one}`}>
+              <div className={css.field}>
+                <label>Speech to Text Language</label>
+                <select value={sttLanguage} onChange={(e) => setSttLanguage(e.target.value as "en" | "af")}>
+                  <option value="en">English</option>
+                  <option value="af">Afrikaans</option>
+                </select>
+              </div>
             </div>
           </div>
           <div className={css.formSection}>
