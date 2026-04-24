@@ -143,11 +143,71 @@ export default function InterestForm({ showBackHome = false }: { showBackHome?: 
     }
   };
 
+  const toTitleCase = (value: string) =>
+    value
+      .toLowerCase()
+      .split(" ")
+      .filter(Boolean)
+      .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+      .join(" ");
+
+  const normalizeEmail = (value: string) =>
+    value
+      .toLowerCase()
+      .replace(/\s+/g, "")
+      .replace(/\(at\)|\sat\s/g, "@")
+      .replace(/\(dot\)|\sdot\s/g, ".");
+
+  const normalizePhone = (value: string) => {
+    const keep = value.replace(/[^\d+a-zA-Z\s()-]/g, "").trim();
+    const extensionMatch = keep.match(/\b(ext|x)\s*\d+\b/i);
+    const extension = extensionMatch ? ` ${extensionMatch[0]}` : "";
+    const withoutExtension = extensionMatch ? keep.replace(extensionMatch[0], "").trim() : keep;
+
+    const hasPlus = withoutExtension.includes("+");
+    const digits = withoutExtension.replace(/[^\d]/g, "");
+    if (!digits) return "";
+
+    // South Africa normalization:
+    // 0XXXXXXXXX -> +27XXXXXXXXX
+    // 27XXXXXXXXX -> +27XXXXXXXXX
+    if (digits.startsWith("0") && digits.length === 10) {
+      return `+27${digits.slice(1)}${extension}`;
+    }
+    if (digits.startsWith("27") && digits.length >= 11) {
+      return `+${digits}${extension}`;
+    }
+
+    if (hasPlus) return `+${digits}${extension}`;
+    return `${digits}${extension}`;
+  };
+
+  const normalizeTranscriptForField = (fieldName: string, text: string) => {
+    const compact = text.replace(/\s+/g, " ").trim();
+    if (!compact) return "";
+
+    if (fieldName === "email") return normalizeEmail(compact);
+    if (fieldName === "phone") return normalizePhone(compact);
+    if (fieldName === "first_name" || fieldName === "last_name") return toTitleCase(compact);
+    if (fieldName === "company") return toTitleCase(compact);
+    if (fieldName.includes("address")) return toTitleCase(compact);
+    if (fieldName.includes("date")) return compact;
+
+    return compact;
+  };
+
   const appendToField = (fieldName: string, text: string) => {
     const field = formRef.current?.querySelector<HTMLInputElement | HTMLTextAreaElement>(`[name="${fieldName}"]`);
     if (!field) return;
-    const cleaned = text.replace(/\s+/g, " ").trim();
+    const cleaned = normalizeTranscriptForField(fieldName, text);
     if (!cleaned) return;
+
+    const overwriteFields = new Set(["first_name", "last_name", "email", "phone", "company"]);
+    if (overwriteFields.has(fieldName)) {
+      field.value = cleaned;
+      return;
+    }
+
     const prev = field.value.trim();
     const spacer = prev && !/\s$/.test(field.value) ? " " : "";
     field.value = `${field.value}${spacer}${cleaned}`.trim();

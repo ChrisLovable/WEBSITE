@@ -14,9 +14,12 @@ export async function POST(req: NextRequest) {
     const audio = formData.get("audio") as File;
     const rawLanguage = ((formData.get("language") as string) || "af").toLowerCase();
     const languageMap: Record<string, string> = {
-      en: "en",
-      af: "af",
-      hi: "hi",
+      en: "eng",
+      eng: "eng",
+      af: "afr",
+      afr: "afr",
+      hi: "hin",
+      hin: "hin",
     };
     const language = languageMap[rawLanguage];
 
