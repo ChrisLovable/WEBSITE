@@ -18,10 +18,8 @@ export const metadata: Metadata = {
     type: 'website',
     images: [
       {
-        url: '/opengraph-image',
-        width: 1200,
-        height: 630,
-        alt: 'My AI Partner logo and brand preview'
+        url: '/logo.jpg',
+        alt: 'My AI Partner logo'
       }
     ]
   },
@@ -30,7 +28,7 @@ export const metadata: Metadata = {
     title: 'My AI Partner | AI Consulting in South Africa',
     description:
       'Your partner in AI transformation. Strategy, training, automation, and implementation for businesses across industries.',
-    images: ['/opengraph-image']
+    images: ['/logo.jpg']
   }
 };
 
