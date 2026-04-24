@@ -64,6 +64,7 @@ export default function HomePage() {
               service.href ? (
                 <Link
                   id={service.id}
+                  aria-label={service.ariaLabel}
                   key={service.title}
                   href={service.href as Route}
                   className="relative block bg-[#0a0a0a] border border-cyan-400/50 p-6 transition hover:shadow-[0_0_20px_rgba(6,182,212,0.35)] hover:border-cyan-300"
@@ -71,7 +72,12 @@ export default function HomePage() {
                   <ServiceCardContent service={service} />
                 </Link>
               ) : (
-                <article id={service.id} key={service.title} className="relative bg-[#0a0a0a] border border-cyan-400/50 p-6">
+                <article
+                  id={service.id}
+                  aria-label={service.ariaLabel}
+                  key={service.title}
+                  className="relative bg-[#0a0a0a] border border-cyan-400/50 p-6"
+                >
                   <ServiceCardContent service={service} />
                 </article>
               )
@@ -81,6 +87,37 @@ export default function HomePage() {
 
         <section id="training" className="py-6" />
         <section id="contact" className="py-6" />
+
+        {/* SEO Content Block */}
+        <div style={{ display: "none" }} aria-hidden="true">
+          <h2>AI Consulting South Africa</h2>
+          <p>
+            myAIpartner provides expert AI strategy consulting, business process automation, and custom AI software
+            development across South Africa including Johannesburg, Cape Town, Durban and Pretoria.
+          </p>
+          <h2>Forensic Email Investigation South Africa</h2>
+          <p>AI-assisted forensic email and WhatsApp investigation for legal, compliance and risk teams in South Africa.</p>
+          <h2>AI Training South Africa</h2>
+          <p>Corporate AI training and workforce enablement programs for South African businesses of all sizes.</p>
+          <h2>AI Keynote Speaker South Africa</h2>
+          <p>Business-focused AI keynotes and executive briefings for South African leadership teams.</p>
+
+          {/* Afrikaans SEO */}
+          <h2>KI Konsultant Suid-Afrika</h2>
+          <p>
+            myAIpartner bied kundige KI-strategie konsultasie, besigheidsprosesoutomatisering en pasgemaakte
+            KI-sagteware-ontwikkeling regoor Suid-Afrika aan, insluitend Johannesburg, Kaapstad, Durban en Pretoria.
+          </p>
+          <h2>Forensiese E-pos Ondersoek Suid-Afrika</h2>
+          <p>
+            KI-gesteunde forensiese e-pos en WhatsApp-ondersoeke vir regs-, voldoenings- en risikobestuurspanne in
+            Suid-Afrika.
+          </p>
+          <h2>KI Opleiding Suid-Afrika</h2>
+          <p>Korporatiewe KI-opleiding en arbeidsmag-bemagtigingsprogramme vir Suid-Afrikaanse besighede van alle groottes.</p>
+          <h2>KI Spreker Suid-Afrika</h2>
+          <p>Besigheidsgerigte KI-toesprake en uitvoerende orienteringsgesprekke vir Suid-Afrikaanse leierskapspanne.</p>
+        </div>
       </main>
     </div>
   );
@@ -88,8 +125,10 @@ export default function HomePage() {
 
 const serviceCards = [
   {
-    id: "service-ai-strategy",
+    id: "ai-strategy-consulting",
     href: "/services/ai-strategy-business-consulting",
+    ariaLabel: "AI Strategy and Business Consulting South Africa",
+    afrikaansTitle: "KI Strategie en Besigheidskonsultasie",
     icon: "strategy",
     title: "AI Strategy & Business Consulting",
     description:
@@ -105,8 +144,10 @@ const serviceCards = [
     ]
   },
   {
-    id: "service-automation",
+    id: "business-process-automation",
     href: "/services/business-process-automation-ai-driven",
+    ariaLabel: "Business Process Automation South Africa",
+    afrikaansTitle: "Besigheidsprosesoutomatisering",
     icon: "automation",
     title: "Business Process Automation (AI-Driven)",
     description:
@@ -122,8 +163,10 @@ const serviceCards = [
     ]
   },
   {
-    id: "service-software",
+    id: "custom-software-development",
     href: "/services/custom-software-development-ai-enabled",
+    ariaLabel: "Custom Software Development South Africa",
+    afrikaansTitle: "Pasgemaakte Sagteware Ontwikkeling",
     icon: "software",
     title: "Custom Software Development (AI-Enabled)",
     description:
@@ -138,8 +181,10 @@ const serviceCards = [
     ]
   },
   {
-    id: "service-mobile",
+    id: "mobile-app-development",
     href: "/services/mobile-desktop-app-development",
+    ariaLabel: "Mobile and Desktop App Development South Africa",
+    afrikaansTitle: "Mobiele Toepassing Ontwikkeling",
     icon: "mobile",
     title: "Mobile App & Desktop App Development",
     description:
@@ -156,8 +201,10 @@ const serviceCards = [
     ]
   },
   {
-    id: "service-training",
+    id: "ai-training-workforce",
     href: "/services/ai-training-workforce-enablement",
+    ariaLabel: "AI Training and Workforce Enablement South Africa",
+    afrikaansTitle: "KI Opleiding en Arbeidsmag Bemagtiging",
     icon: "training",
     title: "AI Training & Workforce Enablement",
     description:
@@ -172,8 +219,10 @@ const serviceCards = [
     ]
   },
   {
-    id: "service-ediscovery",
+    id: "forensic-email-investigation",
     href: "/services/ediscovery-forensic-ai-querying-email-whatsapp",
+    ariaLabel: "Forensic AI Email Investigation South Africa",
+    afrikaansTitle: "Forensiese KI E-pos Ondersoek",
     icon: "ediscovery",
     title: "Forensic AI Email Investigation",
     description:
@@ -190,8 +239,10 @@ const serviceCards = [
   }
   ,
   {
-    id: "service-speaking",
+    id: "ai-speaking-executive-briefings",
     href: "/services/corporate-ai-speaking-executive-briefings",
+    ariaLabel: "Corporate AI Speaking and Executive Briefings South Africa",
+    afrikaansTitle: "Korporatiewe KI Spreker en Uitvoerende Orientering",
     icon: "speaking",
     title: "Corporate AI Speaking & Executive Briefings",
     description:
@@ -205,8 +256,10 @@ const serviceCards = [
     ]
   },
   {
-    id: "service-market-intelligence",
+    id: "competitor-market-intelligence",
     href: "/services/competitor-market-intelligence-ai-monitored",
+    ariaLabel: "Competitor and Market Intelligence South Africa",
+    afrikaansTitle: "Mededinger en Markintelligensie",
     icon: "market",
     title: "Competitor & Market Intelligence (AI-Monitored)",
     description:
@@ -226,6 +279,7 @@ const serviceCards = [
 function ServiceCardContent({ service }: { service: any }) {
   return (
     <>
+      <span style={{ display: "none" }}>{service.afrikaansTitle}</span>
       <div className="w-12 h-12 border border-cyan-400/50 flex items-center justify-center text-cyan-400 mb-4 bg-cyan-400/5">
         <ServiceIcon kind={service.icon} />
       </div>
