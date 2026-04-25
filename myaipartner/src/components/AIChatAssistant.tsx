@@ -187,6 +187,16 @@ function getSpeechApi(): SpeechRecognitionConstructorLike | null {
   return window.SpeechRecognition || window.webkitSpeechRecognition || null;
 }
 
+function isMobileViewport() {
+  if (typeof window === 'undefined') return false;
+  return window.matchMedia('(max-width: 767px)').matches;
+}
+
+function canUseWakeWord() {
+  if (typeof window === 'undefined') return false;
+  return window.matchMedia('(min-width: 768px)').matches;
+}
+
 // ─── HeyGabbyWakeControls sub-component ──────────────────────────────────────
 type WakeProps = {
   wakeWordActive: boolean;
@@ -368,7 +378,7 @@ export default function AIChatAssistant() {
 
   // ── Auto-start wake word when permission granted ─────────────────────────
   useEffect(() => {
-    if (micPermission === 'granted') {
+    if (micPermission === 'granted' && canUseWakeWord()) {
       wakeWordActiveRef.current = true;
       setWakeWordActive(true);
       startWakeWordListener();
@@ -391,9 +401,9 @@ export default function AIChatAssistant() {
       }
       setTimeout(() => {
         const shouldRestart =
-          wakeWasActiveRef.current ||
+          (canUseWakeWord() && wakeWasActiveRef.current) ||
           micPermissionRef.current === 'granted';
-        if (shouldRestart && !openRef.current) {
+        if (shouldRestart && !openRef.current && canUseWakeWord()) {
           wakeWordActiveRef.current = true;
           setWakeWordActive(true);
           startWakeWordListener();
@@ -424,9 +434,9 @@ export default function AIChatAssistant() {
     } else {
       // Don't restart wake word while intro video is showing —
       // the video audio itself would trigger the wake word.
-      if (wakeWordActiveRef.current && !openRef.current && !showIntroRef.current) {
+      if (canUseWakeWord() && wakeWordActiveRef.current && !openRef.current && !showIntroRef.current) {
         setTimeout(() => {
-          if (wakeWordActiveRef.current && !openRef.current && !showIntroRef.current) startWakeWordListener();
+          if (canUseWakeWord() && wakeWordActiveRef.current && !openRef.current && !showIntroRef.current) startWakeWordListener();
         }, 500);
       }
     }
@@ -462,7 +472,7 @@ export default function AIChatAssistant() {
     } else {
       // Video dismissed — force restart wake word regardless of wakeWordActiveRef state.
       setTimeout(() => {
-        if (!openRef.current) {
+        if (!openRef.current && canUseWakeWord()) {
           wakeWordActiveRef.current = true;
           setWakeWordActive(true);
           startWakeWordListener();
@@ -556,7 +566,6 @@ export default function AIChatAssistant() {
   }
 
   function playGreeting(): Promise<void> {
-    if (!ttsEnabledRef.current) return Promise.resolve();
     if (showIntroRef.current) return Promise.resolve();
     if (isVideoPlayingRef.current) return Promise.resolve(); // never play while video is active
 
@@ -664,6 +673,7 @@ export default function AIChatAssistant() {
   }
 
   function startWakeWordListener() {
+    if (!canUseWakeWord()) return;
     if (openRef.current) return;
     if (!wakeWordActiveRef.current) return;
     if (showIntroRef.current) return; // Never start during intro video
@@ -757,6 +767,7 @@ export default function AIChatAssistant() {
   }
 
   async function handleWakeToggle() {
+    if (!canUseWakeWord()) return;
     if (wakeWordActive) {
       wakeWordActiveRef.current = false;
       stopWakeWordListener();
@@ -783,34 +794,45 @@ export default function AIChatAssistant() {
 
     if (listening) {
       recognitionRef.current?.stop();
+      recognitionRef.current = null;
       setListening(false);
       return;
     }
 
+    const mobile = isMobileViewport();
     const r = new SR();
     recognitionRef.current = r;
 
     const lastMsg = latestMsgsRef.current.filter(m => m.role === 'user').slice(-1)[0]?.content?.toLowerCase() ?? '';
     const afrikaansWords = ['die','van','is','en','wat','ek','jy','ons','dit','nie','het','hoe','vir'];
     r.lang            = afrikaansWords.some(w => lastMsg.includes(` ${w} `)) ? 'af-ZA' : 'en-ZA';
-    // FIX: continuous = true so recording doesn't stop after a few seconds of silence
-    r.continuous      = true;
+    // Mobile: single utterance to avoid repeated transcript/beep loops.
+    // Desktop keeps continuous behavior.
+    r.continuous      = !mobile;
     r.interimResults  = true;
-    r.onstart         = () => setListening(true);
+    r.onstart         = () => {
+      if (recognitionRef.current !== r) return;
+      setListening(true);
+    };
     r.onresult        = (e: SpeechRecognitionEventLike) => {
+      if (recognitionRef.current !== r) return;
       const t = Array.from(e.results).map(x => x[0].transcript).join('');
       liveTranscriptRef.current = t;
       setInput(t);
     };
     r.onend = () => {
+      if (recognitionRef.current !== r) return;
+      recognitionRef.current = null;
       setListening(false);
       const t = liveTranscriptRef.current.trim();
       if (t) setInput(t);
       liveTranscriptRef.current = '';
     };
     r.onerror = (e: SpeechRecognitionErrorEventLike) => {
+      if (recognitionRef.current !== r) return;
+      recognitionRef.current = null;
       setListening(false);
-      if (e.error === 'network') {
+      if (e.error === 'network' && !mobile) {
         setTimeout(() => { if (!loading) startListening(); }, 600);
         return;
       }
@@ -826,7 +848,12 @@ export default function AIChatAssistant() {
     const raw = (customText ?? input).trim();
     if (!raw || loading) return;
 
-    if (listening) { recognitionRef.current?.stop(); setListening(false); liveTranscriptRef.current = ''; }
+    if (listening) {
+      recognitionRef.current?.stop();
+      recognitionRef.current = null;
+      setListening(false);
+      liveTranscriptRef.current = '';
+    }
 
     // Stop any in-progress TTS before new message
     ttsAbortRef.current?.abort();
@@ -1384,7 +1411,7 @@ export default function AIChatAssistant() {
       )}
 
       {/* ── Wake word portal ─────────────────────────────────────────────── */}
-      {wakePortalEl && createPortal(
+      {canUseWakeWord() && wakePortalEl && createPortal(
         <HeyGabbyWakeControls wakeWordActive={wakeWordActive} micPermission={micPermission} onToggle={handleWakeToggle} />,
         wakePortalEl
       )}
@@ -1435,11 +1462,15 @@ export default function AIChatAssistant() {
           0%   { transform: scale(1); opacity: 0.8; }
           100% { transform: scale(1.4); opacity: 0; }
         }
-        @media (max-width: 480px) {
+        @media (max-width: 767px) {
           .chat-window {
-            top: 0 !important; left: 0 !important; right: 0 !important;
-            transform: none !important; width: 100% !important;
-            height: 100% !important; border-radius: 0 !important;
+            top: 50% !important;
+            left: 50% !important;
+            right: auto !important;
+            transform: translate(-50%, -50%) !important;
+            width: 90vw !important;
+            height: 90vh !important;
+            border-radius: 12px !important;
           }
         }
       `}</style>
