@@ -105,7 +105,7 @@ function chunkTextForTTS(text: string, maxChars = TTS_CHUNK_SIZE): string[] {
 
 function waitForPaint(): Promise<void> {
   return new Promise(resolve =>
-    queueMicrotask(() => requestAnimationFrame(() => requestAnimationFrame(resolve)))
+    queueMicrotask(() => requestAnimationFrame(() => requestAnimationFrame(() => resolve())))
   );
 }
 
