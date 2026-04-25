@@ -197,18 +197,17 @@ procurement scorecard. We can provide the certificate
 on request.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-FREE APPS
+APPS
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 URL: www.myaipartner.co.za/free-apps
 
-Currently coming soon. Free AI tools are being built and 
-will launch soon. They will let visitors experience what 
-myAIpartner builds before committing to anything.
+The apps page showcases real examples of mobile and desktop 
+solutions developed by myAIpartner, including visual previews.
 
-When asked about free apps say:
-We are building a collection of free AI tools you can try 
-directly on the site, launching soon. Keep an eye on 
-myaipartner.co.za/free-apps for updates.
+When asked about apps say:
+Visit the Apps page to view examples of mobile and desktop 
+applications we have developed, with visual previews and 
+audio walkthrough buttons for each showcased app.
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 WEBSITE NAVIGATION
@@ -216,7 +215,7 @@ WEBSITE NAVIGATION
 Home: www.myaipartner.co.za
 Services: www.myaipartner.co.za/services
 B-BBEE: www.myaipartner.co.za/b-bbee
-Free Apps: www.myaipartner.co.za/free-apps
+Apps: www.myaipartner.co.za/free-apps
 Pricing and Process: www.myaipartner.co.za/pricing-engagement-process
 Contact and Interest Form: www.myaipartner.co.za/interest
 

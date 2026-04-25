@@ -146,7 +146,7 @@ export default function Header() {
                 </div>
               </div>
               <Link href="/free-apps" className={navClass(activeItem === 'free-apps')}>
-                FREE APPS
+                APPS
               </Link>
               <Link href="/pricing-engagement-process" className={navClass(activeItem === 'process')}>
                 PROCESS

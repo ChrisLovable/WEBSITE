@@ -1409,30 +1409,6 @@ export default function AIChatAssistant() {
         wakePortalEl
       )}
 
-      {/* ── Chat trigger (Gabby avatar) ──────────────────────────────────── */}
-      <button type="button"
-        onClick={() => {
-          if (showIntro) {
-            const wasVideoPlaying = isVideoPlayingRef.current;
-            dismissIntro();
-            if (!open) {
-              if (!wasVideoPlaying) void playGreeting();
-              setOpen(true);
-            }
-            return;
-          }
-          const isOpening = !open;
-          setOpen(p => !p);
-          if (isOpening) void playGreeting();
-        }}
-        title="Chat with Gabby" aria-label="Chat with Gabby"
-        style={{ padding: 0, margin: 0, border: 'none', background: 'transparent', cursor: 'pointer', borderRadius: '50%', lineHeight: 0, boxShadow: '0 4px 24px rgba(0,0,0,0.35)' }}
-      >
-        <img src="/gabby.png" alt="Chat with Gabby"
-          className="block h-14 w-14 shrink-0 rounded-full border-2 border-[var(--color-border)] object-cover object-top"
-        />
-      </button>
-
       {/* ── Animations ───────────────────────────────────────────────────── */}
       <style>{`
         @keyframes thinking-dot {
