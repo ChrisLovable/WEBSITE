@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import type { Route } from 'next';
 import Header from '@/components/Header';
+import ThemeSwitcher from '@/components/ThemeSwitcher';
 
 export default function HomePage() {
   const shareOnWhatsApp = () => {
@@ -14,42 +15,47 @@ export default function HomePage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a]">
+    <div className="min-h-screen bg-[var(--color-bg)] text-[var(--color-text-primary)]">
       <Header />
-      <main id="home" className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-[linear-gradient(rgba(34,211,238,0.06)_1px,transparent_1px),linear-gradient(90deg,rgba(34,211,238,0.06)_1px,transparent_1px)] bg-[size:50px_50px]" />
-        <section className="relative z-10 pt-4 md:pt-12">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center">
+      <main id="home" className="relative overflow-x-hidden">
+        <div className="absolute inset-0 bg-[linear-gradient(var(--color-grid)_1px,transparent_1px),linear-gradient(90deg,var(--color-grid)_1px,transparent_1px)] bg-[size:50px_50px]" />
+        <section className="relative z-10 pt-4 md:pt-5">
+          <div className="max-w-7xl mx-auto min-w-0 px-3 sm:px-6 lg:px-8">
+            <div className="relative min-w-0 max-w-full text-center">
+              <div className="relative z-20 mb-3 flex w-full min-w-0 justify-center px-1">
+                <ThemeSwitcher />
+              </div>
               <button
                 type="button"
                 onClick={shareOnWhatsApp}
-                className="mb-4 inline-flex items-center justify-center gap-2 rounded-sm border border-cyan-300 bg-cyan-400/15 px-4 py-2 font-tech text-xs tracking-[0.1em] text-cyan-100 shadow-[0_0_20px_rgba(6,182,212,0.22)] transition-all hover:bg-cyan-300 hover:text-black"
+                className="whatsapp-btn mb-4 box-border flex w-full max-w-full flex-row items-center justify-center gap-2 whitespace-nowrap rounded-sm border border-[var(--color-btn-border)] bg-[var(--color-btn-bg)] px-3 py-2.5 text-center font-tech text-[11px] leading-snug tracking-[0.06em] text-[var(--color-btn-text)] shadow-[0_0_20px_var(--color-border-accent)] transition-all hover:opacity-90 sm:inline-flex sm:w-auto sm:flex-row sm:px-4 sm:text-xs sm:tracking-[0.1em]"
               >
-                Share this site by WhatsApp with someone
-                <svg viewBox="0 0 24 24" aria-hidden="true" className="h-4 w-4">
+                <span>Share this site by WhatsApp with someone</span>
+                <svg viewBox="0 0 24 24" aria-hidden="true" className="h-4 w-4 shrink-0">
                   <path
                     fill="currentColor"
                     d="M20.52 3.48A11.85 11.85 0 0 0 12.05 0C5.49 0 .12 5.37.12 11.94c0 2.1.55 4.16 1.59 5.98L0 24l6.25-1.64a11.86 11.86 0 0 0 5.78 1.48h.01c6.56 0 11.93-5.37 11.93-11.94 0-3.19-1.24-6.19-3.45-8.42Zm-8.48 18.34h-.01a9.9 9.9 0 0 1-5.05-1.39l-.36-.21-3.71.97.99-3.62-.24-.37a9.9 9.9 0 0 1-1.53-5.25c0-5.46 4.45-9.9 9.92-9.9 2.65 0 5.14 1.03 7.01 2.9a9.84 9.84 0 0 1 2.9 7c0 5.46-4.45 9.9-9.92 9.9Zm5.43-7.43c-.3-.15-1.78-.88-2.06-.98-.27-.1-.47-.15-.67.15-.2.3-.77.98-.95 1.18-.17.2-.35.22-.65.07-.3-.15-1.25-.46-2.38-1.46-.88-.79-1.47-1.77-1.64-2.07-.17-.3-.02-.46.13-.61.13-.13.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.08-.15-.67-1.62-.92-2.22-.24-.58-.48-.5-.67-.51h-.57c-.2 0-.52.08-.79.37-.27.3-1.04 1.02-1.04 2.49 0 1.47 1.07 2.9 1.22 3.1.15.2 2.09 3.2 5.06 4.48.7.3 1.25.49 1.67.63.7.22 1.34.19 1.84.11.56-.08 1.78-.73 2.03-1.44.25-.71.25-1.32.17-1.44-.07-.12-.27-.2-.57-.35Z"
                   />
                 </svg>
               </button>
-              <h1 className="sm:hidden text-[1.85rem] font-semibold tracking-tight leading-[1.08] text-cyan-300">
-                <span className="text-white">A</span>rchitects of <span className="text-white">I</span>ntelligence
+              <h1 className="hero-title mx-auto w-full max-w-full min-w-0 break-words px-2 text-balance sm:hidden text-[clamp(1.2rem,5.2vw,1.75rem)] font-semibold tracking-tight leading-snug">
+                <span className="ai-letter">A</span>rchitects of{" "}
+                <span className="ai-letter">I</span>ntelligence
               </h1>
-              <h1 className="hidden sm:block font-tech text-5xl md:text-6xl lg:text-7xl font-black tracking-tight leading-[1.05] italic text-cyan-300">
-                <span className="text-white">A</span>rchitects of <span className="text-white">I</span>ntelligence
+              <h1 className="hero-title hidden sm:block font-tech text-5xl md:text-6xl lg:text-7xl font-black tracking-tight leading-[1.05] italic">
+                <span className="ai-letter">A</span>rchitects of{" "}
+                <span className="ai-letter">I</span>ntelligence
               </h1>
             </div>
             <div className="mt-6 md:mt-8">
-              <p className="text-white max-w-3xl mx-auto text-base sm:text-lg md:text-xl lg:text-2xl leading-relaxed font-medium text-center px-2 sm:px-0">
+              <p className="hero-subtitle mx-auto max-w-3xl min-w-0 break-words text-pretty px-2 text-center text-[var(--color-text-secondary)] text-base leading-relaxed font-medium sm:px-0 sm:text-lg md:text-xl lg:text-2xl">
               We provide end-to-end AI consulting and AI-enabled software development services, covering strategy,
               automation, implementation, training, and long-term support.
             </p>
               <div className="mt-8 text-center">
                 <Link
                   href="/interest"
-                  className="font-tech inline-flex items-center justify-center rounded-sm border border-cyan-300 bg-cyan-400/15 px-6 sm:px-10 py-3 sm:py-4 text-sm sm:text-base md:text-lg tracking-[0.12em] sm:tracking-[0.2em] text-cyan-100 shadow-[0_0_30px_rgba(6,182,212,0.28)] transition-all hover:-translate-y-0.5 hover:bg-cyan-300 hover:text-black hover:shadow-[0_0_50px_rgba(6,182,212,0.5)]"
+                  className="font-tech mx-auto box-border block w-full max-w-md whitespace-normal break-words rounded-sm border border-[var(--color-btn-border)] bg-[var(--color-btn-bg)] px-4 py-3 text-center text-xs leading-snug tracking-wide text-[var(--color-btn-text)] shadow-[0_0_30px_var(--color-border-accent)] transition-all hover:-translate-y-0.5 hover:opacity-90 hover:shadow-[0_0_50px_var(--color-border-accent)] sm:inline-flex sm:max-w-none sm:w-auto sm:px-6 sm:py-4 sm:text-sm sm:tracking-[0.12em] md:text-lg md:tracking-[0.2em] lg:px-10"
                 >
                   TELL US ABOUT WHAT YOU NEED
                 </Link>
@@ -59,7 +65,7 @@ export default function HomePage() {
         </section>
 
         <section id="services" className="relative z-10 py-20">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid gap-6 md:grid-cols-3">
+          <div className="mx-auto grid min-w-0 max-w-7xl gap-6 px-3 sm:px-6 lg:px-8 md:grid-cols-3">
             {serviceCards.map((service) => (
               service.href ? (
                 <Link
@@ -67,7 +73,7 @@ export default function HomePage() {
                   aria-label={service.ariaLabel}
                   key={service.title}
                   href={service.href as Route}
-                  className="relative block bg-[#0a0a0a] border border-cyan-400/50 p-6 transition hover:shadow-[0_0_20px_rgba(6,182,212,0.35)] hover:border-cyan-300"
+                  className="service-card relative block bg-[var(--color-bg-card)] border border-[var(--color-border)] p-6 transition hover:shadow-[0_0_20px_var(--color-border-accent)] hover:border-[var(--color-accent)]"
                 >
                   <ServiceCardContent service={service} />
                 </Link>
@@ -76,7 +82,7 @@ export default function HomePage() {
                   id={service.id}
                   aria-label={service.ariaLabel}
                   key={service.title}
-                  className="relative bg-[#0a0a0a] border border-cyan-400/50 p-6"
+                  className="service-card relative bg-[var(--color-bg-card)] border border-[var(--color-border)] p-6"
                 >
                   <ServiceCardContent service={service} />
                 </article>
@@ -298,17 +304,13 @@ function ServiceCardContent({ service }: { service: any }) {
   return (
     <>
       <span style={{ display: "none" }}>{service.afrikaansTitle}</span>
-      <div className="w-12 h-12 border border-cyan-400/50 flex items-center justify-center text-cyan-400 mb-4 bg-cyan-400/5">
+      <div className="w-12 h-12 border border-[var(--color-border)] flex items-center justify-center text-[var(--color-accent)] mb-4 bg-[var(--color-accent-bg)]">
         <ServiceIcon kind={service.icon} />
       </div>
-      <h3 className="font-tech text-xl md:text-2xl font-bold text-cyan-400 mb-4 tracking-wide">{service.title}</h3>
-      <p className="text-gray-300 text-base leading-relaxed mb-6">{service.description}</p>
-      <div className="mb-6 border border-cyan-400/60 bg-[#03141c] p-5 shadow-[0_0_20px_rgba(6,182,212,0.2)]">
-        <p className="font-tech text-xs tracking-[0.2em] text-cyan-300 mb-3">OUTCOME</p>
-        <p className="text-white text-base leading-relaxed">{service.outcome}</p>
-      </div>
+      <h3 className="font-tech text-xl md:text-2xl font-bold text-[var(--color-accent)] mb-4 tracking-wide">{service.title}</h3>
+      <p className="text-[var(--color-text-secondary)] text-base leading-relaxed mb-6">{service.description}</p>
       <div className="mb-5 flex justify-center">
-        <span className="inline-flex items-center border border-cyan-400/70 bg-cyan-400/10 px-4 py-2 text-cyan-200 text-sm font-medium tracking-wide shadow-[0_0_14px_rgba(6,182,212,0.2)]">
+        <span className="inline-flex items-center border border-[var(--color-border)] bg-[var(--color-accent-bg)] px-4 py-2 text-[var(--color-accent-text)] text-sm font-medium tracking-wide shadow-[0_0_14px_var(--color-border-accent)]">
           Click to learn more →
         </span>
       </div>

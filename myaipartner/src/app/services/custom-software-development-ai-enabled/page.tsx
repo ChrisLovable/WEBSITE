@@ -6,8 +6,8 @@ import Shell from "@/components/Shell";
 export default function CustomSoftwareDevelopmentPage() {
   return (
     <Shell>
-      <main className="relative overflow-hidden bg-[#0a0a0a] pt-3 pb-20 md:pt-8">
-        <div className="absolute inset-0 bg-[linear-gradient(rgba(34,211,238,0.06)_1px,transparent_1px),linear-gradient(90deg,rgba(34,211,238,0.06)_1px,transparent_1px)] bg-[size:50px_50px]" />
+      <main className="relative overflow-hidden bg-[var(--color-bg)] pt-3 pb-20 md:pt-8">
+        <div className="absolute inset-0 bg-[linear-gradient(var(--color-grid)_1px,transparent_1px),linear-gradient(90deg,var(--color-grid)_1px,transparent_1px)] bg-[size:50px_50px]" />
         <div className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
           <div className="pt-0">
             <Link

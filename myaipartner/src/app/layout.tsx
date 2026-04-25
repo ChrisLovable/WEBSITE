@@ -1,6 +1,8 @@
 import type { Metadata } from 'next';
 import { Exo_2, Orbitron } from 'next/font/google';
 import '@/styles/globals.css';
+import AIChatAssistant from '@/components/AIChatAssistant';
+import ThemeBoot from '@/components/ThemeBoot';
 
 const exo2 = Exo_2({ subsets: ['latin'] });
 const orbitron = Orbitron({ subsets: ['latin'], variable: '--font-orbitron' });
@@ -57,10 +59,10 @@ export const metadata: Metadata = {
     alternateLocale: 'af_ZA',
     images: [
       {
-        url: '/logo.jpg',
+        url: '/logo.png',
         width: 818,
         height: 818,
-        type: 'image/jpeg',
+        type: 'image/png',
         alt: 'My AI Partner logo'
       }
     ]
@@ -70,7 +72,11 @@ export const metadata: Metadata = {
     title: 'AI Consulting & Custom Software Development South Africa | myAIpartner',
     description:
       "South Africa's AI consulting partner. AI strategy, automation, custom software, mobile apps, training and forensic investigation.",
-    images: ['/logo.jpg']
+    images: ['/logo.png']
+  },
+  icons: {
+    icon: [{ url: '/logo.png', type: 'image/png', sizes: 'any' }],
+    apple: [{ url: '/logo.png', type: 'image/png' }]
   }
 };
 
@@ -79,7 +85,7 @@ const structuredData = {
   '@type': 'ProfessionalService',
   name: 'myAIpartner',
   url: 'https://www.myaipartner.co.za',
-  logo: 'https://www.myaipartner.co.za/logo.jpg',
+  logo: 'https://www.myaipartner.co.za/logo.png',
   areaServed: {
     '@type': 'Country',
     name: 'South Africa'
@@ -106,9 +112,11 @@ const structuredData = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={`${exo2.className} ${orbitron.variable}`}>
-      <body>
+      <body className="min-h-screen theme-slateblue" suppressHydrationWarning>
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} />
+        <ThemeBoot />
         {children}
+        <AIChatAssistant />
       </body>
     </html>
   );

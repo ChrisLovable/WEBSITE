@@ -581,8 +581,8 @@ export default function InterestForm({ showBackHome = false }: { showBackHome?: 
             <div className={css.submitArea}>
               <button className={css.submitBtn} disabled={submitting} type="submit"><span>{submitting ? tr("Submitting...", "Besig om in te dien...") : tr("Submit Project Brief →", "Dien Projek Opsomming In →")}</span></button>
               <p className={css.submitNote}>{tr("We will review your brief and respond within one business day.", "Ons sal jou opsomming hersien en binne een werksdag reageer.")}<br />{tr("Your information is confidential and will never be shared.", "Jou inligting is vertroulik en sal nooit gedeel word nie.")}</p>
-              {error && <p style={{ color: "#ff4d6d", margin: 0 }}>{error}</p>}
-              {showBackHome && <a href="/" style={{ color: "#00e5ff" }}>{tr("← Back", "← Terug")}</a>}
+              {error && <p style={{ color: "var(--color-accent-text)", margin: 0 }}>{error}</p>}
+              {showBackHome && <a href="/" style={{ color: "var(--color-link)" }}>{tr("← Back", "← Terug")}</a>}
             </div>
           </div>
         </form>

@@ -3,20 +3,22 @@
 import Link from "next/link";
 import Shell from "@/components/Shell";
 
-export default function PricingEngagementProcessPage() {
+export default function ProcessPage() {
   return (
     <Shell>
-      <main className="relative overflow-hidden bg-[#0a0a0a] pt-8 pb-20 md:pt-12">
-        <div className="absolute inset-0 bg-[linear-gradient(rgba(34,211,238,0.06)_1px,transparent_1px),linear-gradient(90deg,rgba(34,211,238,0.06)_1px,transparent_1px)] bg-[size:50px_50px]" />
+      <main className="relative overflow-hidden bg-[var(--color-bg)] pt-8 pb-20 md:pt-12">
+        <div className="absolute inset-0 bg-[linear-gradient(var(--color-grid)_1px,transparent_1px),linear-gradient(90deg,var(--color-grid)_1px,transparent_1px)] bg-[size:50px_50px]" />
         <div className="relative z-10 mx-auto max-w-5xl space-y-8 px-4 sm:px-6 lg:px-8">
           <Link href="/" className="font-tech inline-flex border border-cyan-400 px-5 py-2 text-xs tracking-[0.16em] text-cyan-300 hover:bg-cyan-400/10">
             ← BACK
           </Link>
 
           <section className="space-y-4 border border-cyan-400/50 bg-black/70 p-8">
-            <h1 className="font-tech text-2xl text-cyan-300 md:text-3xl">Pricing &amp; Engagement Process</h1>
+            <h1 className="font-tech text-2xl text-cyan-300 md:text-3xl">Engagement Process</h1>
             <p className="text-lg leading-relaxed text-gray-300">
-              We believe in being clear and transparent about how we work, how projects are scoped, and how fees are structured. Because most of our work is tailored to the needs of each client, final pricing depends on the scope, complexity, and delivery requirements of the specific engagement.
+              We believe in a clear, structured process so every engagement starts with alignment and moves forward with
+              confidence. Our approach is designed to define scope properly, reduce delivery risk, and keep communication
+              consistent from discovery through implementation.
             </p>
           </section>
 
@@ -44,32 +46,21 @@ export default function PricingEngagementProcessPage() {
             </article>
 
             <article className="space-y-3 border border-cyan-500/35 bg-black/50 p-6">
-              <h3 className="font-tech text-lg text-cyan-300 md:text-xl">3. Initial Consultation Fee</h3>
+              <h3 className="font-tech text-lg text-cyan-300 md:text-xl">3. Discovery Summary and Direction</h3>
               <p className="text-gray-300 leading-relaxed">
-                If you would like to proceed with the follow-up meeting, an initial once-off consultation fee of R2,000 is payable.
+                After discovery, we provide a clear summary of priorities, opportunities, constraints, and a recommended
+                direction. This helps ensure both sides are aligned before formal implementation planning begins.
               </p>
-              <p className="font-tech text-sm tracking-wider text-cyan-300">This fee covers:</p>
-              <ul className="grid gap-2 sm:grid-cols-2">
-                {[
-                  "review of your submitted brief",
-                  "preliminary research and preparation",
-                  "initial solution thinking",
-                  "the follow-up consultation session itself"
-                ].map((item) => (
-                  <li key={item} className="text-gray-200 text-sm border border-cyan-500/25 bg-cyan-500/5 px-3 py-2">
-                    {item}
-                  </li>
-                ))}
-              </ul>
               <p className="text-gray-300 leading-relaxed">
-                This ensures that the time already invested in understanding your needs and preparing for the engagement is properly covered.
+                The focus at this stage is clarity: what problem is being solved, what success looks like, and what should
+                happen first.
               </p>
             </article>
 
             <article className="space-y-3 border border-cyan-500/35 bg-black/50 p-6">
-              <h3 className="font-tech text-lg text-cyan-300 md:text-xl">4. Scope, Specifications, and Initial Quotation</h3>
+              <h3 className="font-tech text-lg text-cyan-300 md:text-xl">4. Scope, Specifications, and Implementation Plan</h3>
               <p className="text-gray-300 leading-relaxed">
-                Once the initial consultation has taken place and there is mutual agreement to proceed, we prepare a specifications document together with an initial quotation.
+                Once there is mutual agreement to proceed, we prepare a detailed specification and implementation plan.
               </p>
               <p className="text-gray-300 leading-relaxed">This stage is used to define the project properly and may include:</p>
               <ul className="grid gap-2 sm:grid-cols-2">
@@ -80,7 +71,7 @@ export default function PricingEngagementProcessPage() {
                   "assumptions and exclusions",
                   "implementation approach",
                   "indicative timeline",
-                  "projected costing"
+                  "dependencies and delivery checkpoints"
                 ].map((item) => (
                   <li key={item} className="text-gray-200 text-sm border border-cyan-500/25 bg-cyan-500/5 px-3 py-2">
                     {item}
@@ -93,52 +84,48 @@ export default function PricingEngagementProcessPage() {
             </article>
 
             <article className="space-y-3 border border-cyan-500/35 bg-black/50 p-6">
-              <h3 className="font-tech text-lg text-cyan-300 md:text-xl">5. Final Scope Approval and Payment Structure</h3>
+              <h3 className="font-tech text-lg text-cyan-300 md:text-xl">5. Final Scope Approval and Project Kickoff</h3>
               <p className="text-gray-300 leading-relaxed">
-                Once the scope, specifications, and final quotation have been agreed, the project moves into execution.
+                Once scope and specifications are agreed, the project moves into execution.
               </p>
-              <p className="text-gray-300 leading-relaxed">At that point, payment is structured as follows:</p>
+              <p className="text-gray-300 leading-relaxed">At kickoff, we align on:</p>
               <ul className="grid gap-2 sm:grid-cols-2">
                 {[
-                  "25% deposit on approval of final scope, specifications, and quotation",
-                  "25% on presentation of the MVP",
-                  "25% on final draft",
-                  "25% on delivery of the final product"
+                  "delivery phases and milestones",
+                  "reporting cadence and review points",
+                  "stakeholder communication flow",
+                  "acceptance criteria for each stage"
                 ].map((item) => (
                   <li key={item} className="text-gray-200 text-sm border border-cyan-500/25 bg-cyan-500/5 px-3 py-2">
                     {item}
                   </li>
                 ))}
               </ul>
-              <p className="text-gray-300 leading-relaxed">
-                This staged structure helps ensure clarity, momentum, and fairness throughout the project lifecycle.
-              </p>
+              <p className="text-gray-300 leading-relaxed">This keeps execution structured and transparent across the full lifecycle.</p>
             </article>
 
             <article className="space-y-3 border border-cyan-500/35 bg-black/50 p-6">
               <h3 className="font-tech text-lg text-cyan-300 md:text-xl">6. Timelines</h3>
+              <p className="text-gray-300 leading-relaxed">Estimated timelines are based on agreed scope and delivery dependencies.</p>
               <p className="text-gray-300 leading-relaxed">
-                Estimated timelines are included in the quotation. These are based on the agreed scope at the time of quotation and may change if the scope changes, additional requirements are introduced, or external dependencies affect delivery.
-              </p>
-              <p className="text-gray-300 leading-relaxed">
-                We aim to provide realistic timeline projections that reflect the actual complexity of the work.
+                Where requirements evolve, timelines are reviewed collaboratively to maintain quality and delivery confidence.
               </p>
             </article>
           </section>
 
           <section className="space-y-4 border border-cyan-400/50 bg-black/70 p-8">
-            <h2 className="font-tech text-xl text-cyan-300 md:text-2xl">Hourly Rate</h2>
-            <p className="text-gray-300 leading-relaxed">Our standard hourly consulting and development rate is:</p>
-            <p className="font-tech text-3xl text-cyan-300">R650 per hour</p>
+            <h2 className="font-tech text-xl text-cyan-300 md:text-2xl">Project Governance</h2>
             <p className="text-gray-300 leading-relaxed">
-              This hourly rate may apply where appropriate for advisory work, consulting engagements, revisions outside agreed scope, additional support, or work that is not covered under a fixed project quotation.
+              Throughout delivery, we maintain structured governance with regular check-ins, documented decisions, and milestone
+              reviews to ensure progress stays aligned with agreed objectives.
             </p>
           </section>
 
           <section className="space-y-4 border border-cyan-400/50 bg-black/70 p-8">
-            <h2 className="font-tech text-xl text-cyan-300 md:text-2xl">Exclusions and Direct Costs</h2>
+            <h2 className="font-tech text-xl text-cyan-300 md:text-2xl">Dependencies and Third-Party Considerations</h2>
             <p className="text-gray-300 leading-relaxed">
-              Unless explicitly stated otherwise in the quotation, our pricing excludes third-party and direct project costs, including but not limited to:
+              Some projects involve external services and technical dependencies that can affect implementation timing and complexity.
+              Typical examples include:
             </p>
             <ul className="grid gap-2 sm:grid-cols-2">
               {[
@@ -155,12 +142,12 @@ export default function PricingEngagementProcessPage() {
               ))}
             </ul>
             <p className="text-gray-300 leading-relaxed">
-              Any such costs will be identified separately where possible and discussed with you as part of the quotation or project planning process.
+              Where applicable, these are identified early and discussed as part of planning so delivery remains predictable.
             </p>
           </section>
 
           <section className="space-y-4 border border-cyan-400/50 bg-black/70 p-8">
-            <h2 className="font-tech text-xl text-cyan-300 md:text-2xl">Why We Structure Pricing This Way</h2>
+            <h2 className="font-tech text-xl text-cyan-300 md:text-2xl">Why We Structure the Process This Way</h2>
             <p className="text-gray-300 leading-relaxed">
               Our projects typically involve substantial upfront thinking before development begins. Reviewing your brief, researching your requirements, preparing an initial plan, and conducting the discovery discussion all require time and expertise.
             </p>
@@ -169,7 +156,7 @@ export default function PricingEngagementProcessPage() {
               {[
                 "your requirements are properly understood",
                 "the project is scoped realistically",
-                "costs are quoted more accurately",
+                "delivery risk is reduced early",
                 "delivery expectations are clear from the start"
               ].map((item) => (
                 <li key={item} className="text-gray-200 text-sm border border-cyan-500/25 bg-cyan-500/5 px-3 py-2">
@@ -186,12 +173,11 @@ export default function PricingEngagementProcessPage() {
             <h2 className="font-tech text-xl text-cyan-300 md:text-2xl">Summary</h2>
             <ul className="grid gap-2">
               {[
-                "Initial consultation fee: R2,000 once-off",
-                "Standard hourly rate: R650 per hour",
-                "25% deposit on approval of final scope and quotation",
-                "25% on MVP presentation",
-                "25% on final draft",
-                "25% on final delivery"
+                "Clear intake and discovery process",
+                "Structured scope and implementation planning",
+                "Milestone-based delivery and governance",
+                "Transparent stakeholder communication",
+                "Realistic timelines aligned to project complexity"
               ].map((item) => (
                 <li key={item} className="text-gray-200 text-sm border border-cyan-500/25 bg-cyan-500/5 px-3 py-2">
                   {item}
@@ -199,7 +185,7 @@ export default function PricingEngagementProcessPage() {
               ))}
             </ul>
             <p className="text-gray-300 leading-relaxed">
-              Please note: Pricing excludes hosting, API charges, and other direct third-party or development-related costs unless specifically included in the quotation.
+              Our goal is to deliver work in a professional, predictable process that keeps strategy, execution, and outcomes aligned.
             </p>
           </section>
         </div>

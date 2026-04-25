@@ -6,8 +6,8 @@ import Shell from "@/components/Shell";
 export default function FreeAppsPage() {
   return (
     <Shell>
-      <div className="relative overflow-hidden bg-[#0a0a0a] py-12 md:py-16">
-        <div className="absolute inset-0 bg-[linear-gradient(rgba(34,211,238,0.06)_1px,transparent_1px),linear-gradient(90deg,rgba(34,211,238,0.06)_1px,transparent_1px)] bg-[size:50px_50px]" />
+      <div className="relative overflow-hidden bg-[var(--color-bg)] py-12 md:py-16">
+        <div className="absolute inset-0 bg-[linear-gradient(var(--color-grid)_1px,transparent_1px),linear-gradient(90deg,var(--color-grid)_1px,transparent_1px)] bg-[size:50px_50px]" />
 
         <section className="relative z-10 mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
           <Link
@@ -17,7 +17,7 @@ export default function FreeAppsPage() {
             ← BACK
           </Link>
 
-          <div className="space-y-8 border border-cyan-400/50 bg-black/80 p-8 md:p-12 shadow-[0_0_30px_rgba(6,182,212,0.2)]">
+          <div className="space-y-8 border border-[var(--color-border)] bg-[var(--color-bg-card)]/80 p-8 md:p-12 shadow-[0_0_30px_var(--color-border-accent)]">
             <div className="space-y-3">
               <p className="font-tech text-xs tracking-[0.25em] text-cyan-400">FREE APPS</p>
               <h1 className="font-tech text-3xl text-cyan-300 md:text-4xl">Coming Soon</h1>
@@ -31,7 +31,7 @@ export default function FreeAppsPage() {
               </p>
             </div>
 
-            <div className="space-y-4 border border-cyan-400/30 bg-cyan-500/5 p-6">
+            <div className="space-y-4 border border-[var(--color-border)] bg-[var(--color-bg-input)] p-6">
               <h2 className="font-tech text-xl text-cyan-300 md:text-2xl">What to Expect</h2>
               <ul className="grid gap-2 sm:grid-cols-2">
                 {[
@@ -65,7 +65,7 @@ export default function FreeAppsPage() {
               </ul>
             </div>
 
-            <div className="space-y-4 border-t border-cyan-400/30 pt-6">
+            <div className="space-y-4 border-t border-[var(--color-border)] pt-6">
               <h2 className="font-tech text-xl text-cyan-300 md:text-2xl">Stay Tuned</h2>
               <p className="text-base leading-relaxed text-gray-200 md:text-lg">
                 We&apos;re currently putting the finishing touches on these apps and will be launching them soon.

@@ -6,46 +6,46 @@ import Link from "next/link";
 export default function AIStrategyBusinessConsultingPage() {
   return (
     <Shell>
-      <main className="relative overflow-hidden bg-[#0a0a0a] pt-3 pb-20 md:pt-8">
-        <div className="absolute inset-0 bg-[linear-gradient(rgba(34,211,238,0.06)_1px,transparent_1px),linear-gradient(90deg,rgba(34,211,238,0.06)_1px,transparent_1px)] bg-[size:50px_50px]" />
+      <main className="relative overflow-hidden bg-[var(--color-bg)] pt-3 pb-20 md:pt-8">
+        <div className="absolute inset-0 bg-[linear-gradient(var(--color-grid)_1px,transparent_1px),linear-gradient(90deg,var(--color-grid)_1px,transparent_1px)] bg-[size:50px_50px]" />
         <div className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
           <div className="pt-0">
             <Link
               href="/"
-              className="font-tech inline-flex items-center justify-center border border-cyan-400 px-5 py-2 text-xs tracking-[0.16em] text-cyan-300 transition hover:bg-cyan-400/10"
+              className="font-tech inline-flex items-center justify-center border border-[var(--color-border)] px-5 py-2 text-xs tracking-[0.16em] text-[var(--color-accent)] transition hover:bg-[var(--color-accent-bg)]"
             >
               ← BACK
             </Link>
           </div>
 
-          <section className="border border-cyan-400/50 bg-black/70 p-8">
-            <h1 className="font-tech text-2xl md:text-3xl text-cyan-300 mb-4">AI Strategy &amp; Business Consulting</h1>
-            <p className="text-gray-200 text-lg leading-relaxed">
+          <section className="border border-[var(--color-border)] bg-[var(--color-bg-card)] p-8">
+            <h1 className="font-tech text-2xl md:text-3xl text-[var(--color-accent)] mb-4">AI Strategy &amp; Business Consulting</h1>
+            <p className="text-[var(--color-text-primary)] text-lg leading-relaxed">
               We help leadership teams cut through the noise and identify where AI can create real business value. Our
               focus is practical, commercially sensible AI - not hype, not experimentation for its own sake, and not
               generic transformation language.
             </p>
-            <p className="text-gray-300 text-lg leading-relaxed mt-4">
+            <p className="text-[var(--color-text-secondary)] text-lg leading-relaxed mt-4">
               We work with you to understand your business model, operations, customer journeys, data landscape, and
               decision-making processes so we can identify the most valuable and realistic AI opportunities for your
               organisation.
             </p>
           </section>
 
-          <section className="border border-cyan-400/50 bg-black/70 p-8">
-            <h2 className="font-tech text-2xl text-cyan-300 mb-3">The Outcome</h2>
-            <p className="text-gray-200 text-lg leading-relaxed">
+          <section className="border border-[var(--color-border)] bg-[var(--color-bg-card)] p-8">
+            <h2 className="font-tech text-2xl text-[var(--color-accent)] mb-3">The Outcome</h2>
+            <p className="text-[var(--color-text-primary)] text-lg leading-relaxed">
               A clear, realistic AI strategy aligned to your business goals, operating realities, and budget - with a
               practical path to execution.
             </p>
-            <p className="text-gray-300 text-lg leading-relaxed mt-4">
+            <p className="text-[var(--color-text-secondary)] text-lg leading-relaxed mt-4">
               Whether you are just starting to explore AI or trying to prioritise where to invest next, we help you
               move forward with confidence, clarity, and a strong commercial foundation.
             </p>
           </section>
 
-          <section className="border border-cyan-400/50 bg-black/70 p-8 space-y-8">
-            <h2 className="font-tech text-2xl text-cyan-300">Our Consulting Focus Areas</h2>
+          <section className="border border-[var(--color-border)] bg-[var(--color-bg-card)] p-8 space-y-8">
+            <h2 className="font-tech text-2xl text-[var(--color-accent)]">Our Consulting Focus Areas</h2>
 
             <FocusArea
               title="1. AI Opportunity Assessment"
@@ -131,19 +131,19 @@ export default function AIStrategyBusinessConsultingPage() {
             />
           </section>
 
-          <section className="border border-cyan-400/50 bg-black/70 p-8 space-y-6">
-            <h2 className="font-tech text-2xl text-cyan-300">How We Work</h2>
-            <p className="text-gray-200 text-lg leading-relaxed">
+          <section className="border border-[var(--color-border)] bg-[var(--color-bg-card)] p-8 space-y-6">
+            <h2 className="font-tech text-2xl text-[var(--color-accent)]">How We Work</h2>
+            <p className="text-[var(--color-text-primary)] text-lg leading-relaxed">
               Our approach is practical, business-focused, and outcome-driven.
             </p>
-            <p className="text-gray-300 text-lg leading-relaxed">
+            <p className="text-[var(--color-text-secondary)] text-lg leading-relaxed">
               We do not begin with technology. We begin with your business goals, your operational realities, and your
               biggest opportunities. From there, we help you make sensible decisions about where AI can create
               measurable value and how to pursue it in a structured, low-risk way.
             </p>
             <div>
-              <p className="text-gray-200 mb-2">We can support leadership teams through:</p>
-              <ul className="space-y-2 text-gray-300 list-disc list-inside">
+              <p className="text-[var(--color-text-primary)] mb-2">We can support leadership teams through:</p>
+              <ul className="space-y-2 text-[var(--color-text-secondary)] list-disc list-inside">
                 <li>strategy workshops</li>
                 <li>focused advisory sessions</li>
                 <li>opportunity discovery engagements</li>
@@ -153,9 +153,9 @@ export default function AIStrategyBusinessConsultingPage() {
             </div>
           </section>
 
-          <section className="border border-cyan-400/50 bg-black/70 p-8 space-y-6">
-            <h2 className="font-tech text-2xl text-cyan-300">Who This Is For</h2>
-            <ul className="space-y-2 text-gray-300 list-disc list-inside">
+          <section className="border border-[var(--color-border)] bg-[var(--color-bg-card)] p-8 space-y-6">
+            <h2 className="font-tech text-2xl text-[var(--color-accent)]">Who This Is For</h2>
+            <ul className="space-y-2 text-[var(--color-text-secondary)] list-disc list-inside">
               <li>business owners and executives</li>
               <li>leadership teams exploring AI adoption</li>
               <li>organisations wanting clarity before investing</li>
@@ -164,14 +164,14 @@ export default function AIStrategyBusinessConsultingPage() {
             </ul>
           </section>
 
-          <section className="border border-cyan-400/50 bg-black/70 p-8">
-            <h2 className="font-tech text-2xl text-cyan-300 mb-3">Why Work With Us</h2>
-            <p className="text-gray-300 text-lg leading-relaxed">
+          <section className="border border-[var(--color-border)] bg-[var(--color-bg-card)] p-8">
+            <h2 className="font-tech text-2xl text-[var(--color-accent)] mb-3">Why Work With Us</h2>
+            <p className="text-[var(--color-text-secondary)] text-lg leading-relaxed">
               We combine business thinking with practical AI understanding. That means we do not simply recommend
               tools - we help you determine what is worth doing, why it matters, what it will take, and how to
               approach it responsibly.
             </p>
-            <p className="text-gray-200 text-lg leading-relaxed mt-4">
+            <p className="text-[var(--color-text-primary)] text-lg leading-relaxed mt-4">
               The result is an AI strategy that is realistic, prioritised, and aligned to real business value.
             </p>
           </section>
@@ -196,13 +196,13 @@ function FocusArea({
 }) {
   return (
     <div className="space-y-4">
-      <h3 className="font-tech text-xl text-cyan-300">{title}</h3>
-      <p className="text-gray-200 leading-relaxed">{intro}</p>
-      <p className="text-gray-300 leading-relaxed">{body}</p>
-      <p className="text-gray-300 leading-relaxed">{summary}</p>
+      <h3 className="font-tech text-xl text-[var(--color-accent)]">{title}</h3>
+      <p className="text-[var(--color-text-primary)] leading-relaxed">{intro}</p>
+      <p className="text-[var(--color-text-secondary)] leading-relaxed">{body}</p>
+      <p className="text-[var(--color-text-secondary)] leading-relaxed">{summary}</p>
       <div>
-        <p className="text-gray-200 mb-2">What this covers:</p>
-        <ul className="space-y-1 text-gray-300 list-disc list-inside">
+        <p className="text-[var(--color-text-primary)] mb-2">What this covers:</p>
+        <ul className="space-y-1 text-[var(--color-text-secondary)] list-disc list-inside">
           {items.map((item) => (
             <li key={item}>{item}</li>
           ))}
