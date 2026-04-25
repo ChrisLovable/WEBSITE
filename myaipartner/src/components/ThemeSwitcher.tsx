@@ -29,15 +29,8 @@ export default function ThemeSwitcher() {
   };
 
   useEffect(() => {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    let effective: ThemeId = DEFAULT_THEME;
-    if (raw && ALLOWED_THEME_IDS.has(raw)) {
-      effective = raw as ThemeId;
-    }
-    if (raw && raw !== effective) {
-      localStorage.setItem(STORAGE_KEY, effective);
-    }
-    setTheme(effective);
+    setTheme(DEFAULT_THEME);
+    localStorage.setItem(STORAGE_KEY, DEFAULT_THEME);
   }, []);
 
   const applyTheme = (theme: ThemeId, x?: number, y?: number) => {

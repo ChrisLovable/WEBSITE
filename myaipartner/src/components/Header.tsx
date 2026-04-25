@@ -3,10 +3,14 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import type { Route } from 'next';
+import { createPortal } from 'react-dom';
 
 export default function Header() {
   const pathname = usePathname();
   const [hash, setHash] = useState('');
+  const [showMobileWakeNotice, setShowMobileWakeNotice] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  const MOBILE_WAKE_NOTICE_SEEN_KEY = 'mobile-wake-notice-seen-v2';
   const serviceLinks = [
     { href: '/services/ai-strategy-business-consulting', label: 'AI Strategy & Business Consulting' },
     { href: '/services/business-process-automation-ai-driven', label: 'Business Process Automation' },
@@ -25,6 +29,25 @@ export default function Header() {
     updateHash();
     window.addEventListener('hashchange', updateHash);
     return () => window.removeEventListener('hashchange', updateHash);
+  }, []);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const onIntroDismissed = () => {
+      const isMobile = window.matchMedia('(max-width: 767px)').matches;
+      if (!isMobile) return;
+      const seen = sessionStorage.getItem(MOBILE_WAKE_NOTICE_SEEN_KEY);
+      if (!seen) {
+        setShowMobileWakeNotice(true);
+        sessionStorage.setItem(MOBILE_WAKE_NOTICE_SEEN_KEY, 'true');
+      }
+    };
+    window.addEventListener('gabby-intro-dismissed', onIntroDismissed);
+    return () => window.removeEventListener('gabby-intro-dismissed', onIntroDismissed);
   }, []);
 
   const activeItem =
@@ -52,7 +75,7 @@ export default function Header() {
   return (
     <header className="site-header sticky top-0 z-50 overflow-x-clip overflow-y-visible border-b border-[var(--color-border)] bg-[var(--color-bg-card)] backdrop-blur-md supports-[backdrop-filter]:bg-[var(--color-bg-card)]/92 md:overflow-x-visible">
       <div className="mx-auto max-w-7xl min-w-0 px-3 sm:px-6 lg:px-8">
-        <div className="flex min-w-0 w-full flex-wrap items-start gap-2 py-2 md:min-h-14 md:flex-row md:flex-nowrap md:items-center md:justify-start md:gap-4 md:py-2">
+        <div className="flex min-w-0 w-full flex-wrap items-start gap-2 py-2 max-md:gap-0 md:min-h-14 md:flex-row md:flex-nowrap md:items-center md:justify-start md:gap-4 md:py-2">
           {/* Logo only — md:w-24 anchors the large absolute hero logo (kept below nav row in z-order) */}
           <div className="relative z-[55] flex shrink-0 justify-start self-start md:w-24 md:shrink-0 md:self-stretch">
             <img
@@ -63,11 +86,11 @@ export default function Header() {
           </div>
 
           {/* Gabby + Hey Gabby + nav — above overlapping hero logo; clickable on desktop */}
-          <div className="relative z-[70] flex min-w-0 min-h-0 flex-1 flex-wrap items-center gap-2 md:w-full md:flex-nowrap md:items-center md:gap-4">
+          <div className="relative z-[70] flex min-w-0 flex-1 flex-row flex-wrap items-center gap-2 max-md:gap-0 md:min-h-0 md:flex-nowrap md:items-center md:gap-4">
             <div className="gabby-header-cluster flex min-w-0 shrink-0 items-center gap-2 md:ml-[50px]">
               <button
                 type="button"
-                className="gabby-nav-avatar-wrap relative z-[71] overflow-hidden rounded-full border-0 bg-black p-0 leading-none"
+                className="gabby-nav-avatar-wrap relative z-[71] overflow-hidden rounded-full border border-[var(--color-border)] bg-[var(--color-bg-input)] p-0 leading-none"
                 onClick={() => {
                   if (typeof window !== 'undefined') {
                     window.dispatchEvent(new CustomEvent('open-gabby-chat'));
@@ -78,19 +101,32 @@ export default function Header() {
               >
                 <img id="nav-gabby-avatar" src="/gabby.png" alt="" className="gabby-nav-avatar block" />
               </button>
+              <button
+                type="button"
+                className={`${navClass(false)} relative z-[71] max-md:w-auto max-md:min-w-[56px]`}
+                onClick={() => {
+                  if (typeof window !== 'undefined') {
+                    window.dispatchEvent(new CustomEvent('replay-gabby-video'));
+                  }
+                }}
+                title="Replay Gabby video"
+                aria-label="Replay Gabby video"
+              >
+                REPLAY
+              </button>
               <div className="relative z-[71] flex min-w-0 shrink-0 flex-wrap items-center gap-2 md:ml-5">
                 <div
                   id="gabby-wake-slot"
-                  className="inline-flex min-w-0 shrink-0 items-center"
+                  className="inline-flex min-w-0 shrink-0 items-center max-md:hidden"
                   aria-label="Hey Gabby wake word options"
                 />
               </div>
             </div>
             <nav
               aria-label="Main"
-              className="nav-links grid basis-full min-w-0 w-full grid-cols-5 gap-1 overflow-x-hidden overflow-y-visible font-tech max-md:mt-[10px] max-md:mx-[calc(50%-50vw)] max-md:w-screen max-md:gap-0 max-md:items-center sm:w-auto md:ml-[50px] md:basis-auto md:min-w-0 md:flex md:flex-1 md:grid-cols-none md:justify-start md:gap-[10px] md:[overflow:visible] md:whitespace-nowrap"
+              className="nav-links grid min-w-0 w-full grid-cols-5 gap-1 overflow-x-hidden overflow-y-visible font-tech max-md:basis-full max-md:mt-1 max-md:-mx-3 max-md:w-[calc(100%+1.5rem)] max-md:-translate-x-[14px] max-md:gap-0 max-md:items-stretch sm:w-auto md:ml-[50px] md:basis-auto md:min-w-0 md:flex md:flex-1 md:grid-cols-none md:justify-start md:gap-[10px] md:[overflow:visible] md:whitespace-nowrap"
             >
-              <Link href="/" className={`${navClass(activeItem === 'home')} max-md:-translate-x-[10px]`}>
+              <Link href="/" className={navClass(activeItem === 'home')}>
                 HOME
               </Link>
               <div className="relative min-w-0 shrink-0 group max-md:flex max-md:w-full max-md:items-stretch">
@@ -115,10 +151,29 @@ export default function Header() {
               <Link href="/pricing-engagement-process" className={navClass(activeItem === 'process')}>
                 PROCESS
               </Link>
-              <Link href="/interest" className={`${navClass(activeItem === 'contact')} max-md:translate-x-[20px]`}>
+              <Link href="/interest" className={navClass(activeItem === 'contact')}>
                 CONTACT
               </Link>
             </nav>
+            {mounted && showMobileWakeNotice && createPortal(
+              <div className="fixed inset-0 z-[9999] md:hidden">
+                <div className="absolute inset-0 bg-black/35 backdrop-blur-sm" />
+                <div className="absolute left-1/2 top-[96px] w-[calc(100vw-24px)] max-w-[420px] -translate-x-1/2">
+                  <div className="relative border border-[#4ade80] bg-[#0f3d24] px-3 pb-3 pt-8 text-[11px] leading-relaxed text-[#d8ffe8] shadow-[0_8px_24px_rgba(0,0,0,0.35)]">
+                    <button
+                      type="button"
+                      onClick={() => setShowMobileWakeNotice(false)}
+                      className="absolute right-2 top-2 inline-flex h-5 items-center justify-center border border-[#9affc5] bg-[#1d6b3f] px-2 text-[10px] font-semibold text-[#eafff3]"
+                      aria-label="Close mobile wake notice"
+                    >
+                      OK
+                    </button>
+                    Saying &quot;Hey Gabby&quot; is blocked on most mobile operating systems. On mobile, tap the Gabby icon to ask her. On a laptop the &quot;Hey Gabby&quot; call will work perfectly fine provided you have given the necessary permission to access your microphone.
+                  </div>
+                </div>
+              </div>,
+              document.body
+            )}
           </div>
         </div>
       </div>

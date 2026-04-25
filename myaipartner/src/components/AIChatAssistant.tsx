@@ -529,6 +529,13 @@ export default function AIChatAssistant() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  useEffect(() => {
+    const handler = () => replayVideo();
+    window.addEventListener('replay-gabby-video', handler);
+    return () => window.removeEventListener('replay-gabby-video', handler);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // ── Cleanup on unmount ───────────────────────────────────────────────────
   useEffect(() => {
     return () => {
@@ -1036,6 +1043,7 @@ export default function AIChatAssistant() {
     setShowIntro(false);
     setVideoPlaying(false);
     sessionStorage.setItem(GABBY_INTRO_SEEN_KEY, 'true');
+    window.dispatchEvent(new CustomEvent('gabby-intro-dismissed'));
     // Wake word restart is handled by the showIntro useEffect when showIntro→false.
   }
 
@@ -1059,6 +1067,26 @@ export default function AIChatAssistant() {
         .then(() => setIntroMuted(false))
         .catch(() => { v.muted = true; setIntroMuted(true); v.play().catch(() => {}); });
     }, 50);
+  }
+
+  function startIntroVideoPlayback() {
+    if (!videoRef.current) return;
+    const v = videoRef.current;
+    v.muted = false;
+    v.volume = 1;
+    isVideoPlayingRef.current = true;
+    // Hard-kill wake word synchronously before video audio hits the STT buffer.
+    // Chrome fires onresult from buffered audio even after stop() —
+    // nulling the ref here triggers the stale-instance guard in onresult.
+    try { wakeRecognitionRef.current?.stop(); } catch {}
+    wakeRecognitionRef.current = null;
+    v.play()
+      .then(() => { setVideoPlaying(true); setIntroMuted(false); })
+      .catch(() => {
+        v.muted = true;
+        setIntroMuted(true);
+        v.play().then(() => setVideoPlaying(true)).catch(() => {});
+      });
   }
 
   const iconBtn: CSSProperties = {
@@ -1101,47 +1129,12 @@ export default function AIChatAssistant() {
               playsInline
               muted={introMuted}
               onEnded={dismissIntro}
-              style={{ width: '100%', height: '100%', display: 'block', objectFit: 'cover', objectPosition: 'center top', mixBlendMode: 'normal' }}
+              onClick={() => {
+                if (!videoPlaying) startIntroVideoPlayback();
+              }}
+              style={{ width: '100%', height: '100%', display: 'block', objectFit: 'cover', objectPosition: 'center top', mixBlendMode: 'normal', cursor: videoPlaying ? 'default' : 'pointer' }}
             />
             <div aria-hidden style={{ position: 'absolute', inset: 0, pointerEvents: 'none', borderRadius: 20 }} />
-            {!videoPlaying && (
-              <button
-                onClick={() => {
-                  if (!videoRef.current) return;
-                  const v = videoRef.current;
-                  v.muted = false;
-                  v.volume = 1;
-                  isVideoPlayingRef.current = true;
-                  // Hard-kill wake word synchronously before video audio hits the STT buffer.
-                  // Chrome fires onresult from buffered audio even after stop() —
-                  // nulling the ref here triggers the stale-instance guard in onresult.
-                  try { wakeRecognitionRef.current?.stop(); } catch {}
-                  wakeRecognitionRef.current = null;
-                  v.play()
-                    .then(() => { setVideoPlaying(true); setIntroMuted(false); })
-                    .catch(() => {
-                      v.muted = true;
-                      setIntroMuted(true);
-                      v.play().then(() => setVideoPlaying(true)).catch(() => {});
-                    });
-                }}
-                style={{
-                  position: 'absolute', top: '50%', left: '50%',
-                  transform: 'translate(-50%, -50%)',
-                  width: 76, height: 76, borderRadius: '50%',
-                  background: 'rgba(255,255,255,0.18)',
-                  backdropFilter: 'blur(10px)', WebkitBackdropFilter: 'blur(10px)',
-                  border: '2px solid rgba(255,255,255,0.55)', cursor: 'pointer',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  boxShadow: '0 4px 24px rgba(0,0,0,0.4)', transition: 'background 0.2s, transform 0.15s',
-                }}
-                title="Play"
-              >
-                <svg width="30" height="30" viewBox="0 0 24 24" fill="white" style={{ marginLeft: 5 }}>
-                  <polygon points="5,3 19,12 5,21" />
-                </svg>
-              </button>
-            )}
           </div>
 
           <div style={{ position: 'absolute', top: 8, right: 8, display: 'flex', gap: 6, zIndex: 2 }}>
