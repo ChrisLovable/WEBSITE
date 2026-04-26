@@ -9,8 +9,6 @@ import { trackEvent } from '@/hooks/useAnalytics';
 const GABBY_MEMORY_KEY       = 'gabby-memory';
 const GABBY_INTRO_SEEN_KEY   = 'gabby-intro-seen';
 const GABBY_INTRO_PLAYED_KEY = 'gabby-intro-played';
-const GABBY_HITHERE_HISTORY_KEY = 'gabby-hithere-history-v1';
-const HITHERE_COUNT          = 18;   // public/hithere/hithere-1.mp3 … hithere-18.mp3
 const STT_IDLE_STOP_MS       = 5000; // stop Ask Gabby mic after 5s silence
 const THINKING_MIN           = 1;    // public/thinking/thinking-1.mp3
 const THINKING_MAX           = 16;   // … thinking-16.mp3
@@ -533,14 +531,9 @@ export default function AIChatAssistant() {
       showIntroRef.current = false;
       setShowIntro(false);
       setVideoPlaying(false);
-      const mobile = isMobileViewport();
       if (!openRef.current && !wasVideoPlaying) {
-        if (mobile) {
-          void playGreeting().finally(() => setOpen(true));
-        } else {
-          void playGreeting();
-          setOpen(true);
-        }
+        setOpen(true);
+        void playGreeting();
         return;
       }
       setOpen(true);
@@ -598,30 +591,7 @@ export default function AIChatAssistant() {
     if (isVideoPlayingRef.current) return Promise.resolve(); // never play while video is active
 
     greetingAudioRef.current?.pause();
-    const pickGreetingSrc = () => {
-      if (typeof window === 'undefined') {
-        const n = Math.floor(Math.random() * HITHERE_COUNT) + 1;
-        return `/hithere/hithere-${n}.mp3`;
-      }
-      try {
-        const raw = localStorage.getItem(GABBY_HITHERE_HISTORY_KEY);
-        const parsed = raw ? JSON.parse(raw) : [];
-        const heard = Array.isArray(parsed)
-          ? [...new Set(parsed.filter((n): n is number => Number.isInteger(n) && n >= 1 && n <= HITHERE_COUNT))]
-          : [];
-        const basePool = Array.from({ length: HITHERE_COUNT }, (_, i) => i + 1);
-        const unseen = basePool.filter(n => !heard.includes(n));
-        const pool = unseen.length ? unseen : basePool;
-        const pick = pool[Math.floor(Math.random() * pool.length)];
-        const nextHistory = unseen.length ? [...heard, pick] : [pick];
-        localStorage.setItem(GABBY_HITHERE_HISTORY_KEY, JSON.stringify(nextHistory));
-        return `/hithere/hithere-${pick}.mp3`;
-      } catch {
-        const n = Math.floor(Math.random() * HITHERE_COUNT) + 1;
-        return `/hithere/hithere-${n}.mp3`;
-      }
-    };
-    const src = pickGreetingSrc();
+    const src = '/hithere.mp3';
     sessionStorage.setItem(GABBY_INTRO_PLAYED_KEY, 'true');
 
     return new Promise(resolve => {
