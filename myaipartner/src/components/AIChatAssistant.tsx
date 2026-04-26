@@ -9,7 +9,6 @@ import { trackEvent } from '@/hooks/useAnalytics';
 const GABBY_MEMORY_KEY       = 'gabby-memory';
 const GABBY_INTRO_SEEN_KEY   = 'gabby-intro-seen';
 const GABBY_INTRO_PLAYED_KEY = 'gabby-intro-played';
-const STT_IDLE_STOP_MS       = 5000; // stop Ask Gabby mic after 5s silence
 const THINKING_MIN           = 1;    // public/thinking/thinking-1.mp3
 const THINKING_MAX           = 16;   // … thinking-16.mp3
 const TTS_CHUNK_SIZE         = 800;  // Max chars per TTS request (Google TTS safe limit)
@@ -329,7 +328,7 @@ export default function AIChatAssistant() {
   const inputRef             = useRef<HTMLInputElement>(null);
   const recognitionRef       = useRef<SpeechRecognitionLike | null>(null);
   const wakeRecognitionRef   = useRef<SpeechRecognitionLike | null>(null);
-  const sttStopTimerRef      = useRef<number | null>(null);
+  const sttKeepListeningRef  = useRef(false);
   const lastOpenTrackedRef   = useRef(false);
 
   // Keep refs in sync
@@ -807,68 +806,55 @@ export default function AIChatAssistant() {
     if (!SR) return;
 
     if (listening) {
+      sttKeepListeningRef.current = false;
       recognitionRef.current?.stop();
       recognitionRef.current = null;
       setListening(false);
       return;
     }
 
-    const mobile = isMobileViewport();
+    sttKeepListeningRef.current = true;
     const r = new SR();
     recognitionRef.current = r;
-    const clearSttStopTimer = () => {
-      if (sttStopTimerRef.current !== null) {
-        window.clearTimeout(sttStopTimerRef.current);
-        sttStopTimerRef.current = null;
-      }
-    };
-    const armSttStopTimer = () => {
-      clearSttStopTimer();
-      sttStopTimerRef.current = window.setTimeout(() => {
-        if (recognitionRef.current === r) {
-          try { r.stop(); } catch {}
-        }
-      }, STT_IDLE_STOP_MS);
-    };
 
     const lastMsg = latestMsgsRef.current.filter(m => m.role === 'user').slice(-1)[0]?.content?.toLowerCase() ?? '';
     const afrikaansWords = ['die','van','is','en','wat','ek','jy','ons','dit','nie','het','hoe','vir'];
     r.lang            = afrikaansWords.some(w => lastMsg.includes(` ${w} `)) ? 'af-ZA' : 'en-ZA';
-    // Mobile: single utterance to avoid repeated transcript/beep loops.
-    // Desktop keeps continuous behavior.
-    r.continuous      = !mobile;
+    // Keep listening until user manually stops.
+    r.continuous      = true;
     r.interimResults  = true;
     r.onstart         = () => {
       if (recognitionRef.current !== r) return;
       setListening(true);
-      armSttStopTimer();
     };
     r.onresult        = (e: SpeechRecognitionEventLike) => {
       if (recognitionRef.current !== r) return;
       const t = Array.from(e.results).map(x => x[0].transcript).join('');
       liveTranscriptRef.current = t;
       setInput(t);
-      armSttStopTimer();
     };
     r.onend = () => {
       if (recognitionRef.current !== r) return;
-      clearSttStopTimer();
       recognitionRef.current = null;
       setListening(false);
       const t = liveTranscriptRef.current.trim();
       if (t) setInput(t);
       liveTranscriptRef.current = '';
+      if (sttKeepListeningRef.current && !loading) {
+        setTimeout(() => {
+          if (sttKeepListeningRef.current && !recognitionRef.current && !loading) startListening();
+        }, 120);
+      }
     };
     r.onerror = (e: SpeechRecognitionErrorEventLike) => {
       if (recognitionRef.current !== r) return;
-      clearSttStopTimer();
       recognitionRef.current = null;
       setListening(false);
-      if (e.error === 'network' && !mobile) {
-        setTimeout(() => { if (!loading) startListening(); }, 600);
+      if (!sttKeepListeningRef.current) return;
+      if (['aborted','no-speech','network'].includes(e.error)) {
+        setTimeout(() => { if (!loading && sttKeepListeningRef.current) startListening(); }, 350);
         return;
       }
-      if (['aborted','no-speech'].includes(e.error)) return;
       console.warn('STT:', e.error);
     };
 
@@ -881,12 +867,9 @@ export default function AIChatAssistant() {
     if (!raw || loading) return;
 
     if (listening) {
+      sttKeepListeningRef.current = false;
       recognitionRef.current?.stop();
       recognitionRef.current = null;
-      if (sttStopTimerRef.current !== null) {
-        window.clearTimeout(sttStopTimerRef.current);
-        sttStopTimerRef.current = null;
-      }
       setListening(false);
       liveTranscriptRef.current = '';
     }
