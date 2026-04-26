@@ -4,6 +4,7 @@ import Link from 'next/link';
 import type { Route } from 'next';
 import Header from '@/components/Header';
 import ThemeSwitcher from '@/components/ThemeSwitcher';
+import { trackEvent } from '@/hooks/useAnalytics';
 
 export default function HomePage() {
   const shareOnWhatsApp = () => {
@@ -11,6 +12,7 @@ export default function HomePage() {
     const shareUrl = window.location.origin;
     const message = `${shareUrl}\n\nTake a look at this site`;
     const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
+    trackEvent('whatsapp_share_click', 'Share this site by WhatsApp with someone', { whatsappUrl });
     window.open(whatsappUrl, "_blank", "noopener,noreferrer");
   };
 

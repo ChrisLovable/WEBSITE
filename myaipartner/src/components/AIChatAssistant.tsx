@@ -3,12 +3,15 @@
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from 'react';
 import { createPortal } from 'react-dom';
 import { usePathname } from 'next/navigation';
+import { trackEvent } from '@/hooks/useAnalytics';
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 const GABBY_MEMORY_KEY       = 'gabby-memory';
 const GABBY_INTRO_SEEN_KEY   = 'gabby-intro-seen';
 const GABBY_INTRO_PLAYED_KEY = 'gabby-intro-played';
+const GABBY_HITHERE_HISTORY_KEY = 'gabby-hithere-history-v1';
 const HITHERE_COUNT          = 18;   // public/hithere/hithere-1.mp3 … hithere-18.mp3
+const STT_IDLE_STOP_MS       = 5000; // stop Ask Gabby mic after 5s silence
 const THINKING_MIN           = 1;    // public/thinking/thinking-1.mp3
 const THINKING_MAX           = 16;   // … thinking-16.mp3
 const TTS_CHUNK_SIZE         = 800;  // Max chars per TTS request (Google TTS safe limit)
@@ -328,6 +331,8 @@ export default function AIChatAssistant() {
   const inputRef             = useRef<HTMLInputElement>(null);
   const recognitionRef       = useRef<SpeechRecognitionLike | null>(null);
   const wakeRecognitionRef   = useRef<SpeechRecognitionLike | null>(null);
+  const sttStopTimerRef      = useRef<number | null>(null);
+  const lastOpenTrackedRef   = useRef(false);
 
   // Keep refs in sync
   openRef.current          = open;
@@ -417,6 +422,13 @@ export default function AIChatAssistant() {
   // ── Focus input when chat opens ──────────────────────────────────────────
   useEffect(() => {
     if (open) setTimeout(() => inputRef.current?.focus(), 100);
+  }, [open]);
+
+  useEffect(() => {
+    if (open && !lastOpenTrackedRef.current) {
+      trackEvent('gabby_opened', 'gabby_chat');
+    }
+    lastOpenTrackedRef.current = open;
   }, [open]);
 
   // ── Scroll to bottom on new messages ────────────────────────────────────
@@ -521,7 +533,16 @@ export default function AIChatAssistant() {
       showIntroRef.current = false;
       setShowIntro(false);
       setVideoPlaying(false);
-      if (!openRef.current && !wasVideoPlaying) void playGreeting();
+      const mobile = isMobileViewport();
+      if (!openRef.current && !wasVideoPlaying) {
+        if (mobile) {
+          void playGreeting().finally(() => setOpen(true));
+        } else {
+          void playGreeting();
+          setOpen(true);
+        }
+        return;
+      }
       setOpen(true);
     };
     window.addEventListener('open-gabby-chat', handler);
@@ -577,15 +598,31 @@ export default function AIChatAssistant() {
     if (isVideoPlayingRef.current) return Promise.resolve(); // never play while video is active
 
     greetingAudioRef.current?.pause();
-    const introPlayed = sessionStorage.getItem(GABBY_INTRO_PLAYED_KEY);
-    let src: string;
-    if (!introPlayed) {
-      const n = Math.floor(Math.random() * HITHERE_COUNT) + 1;
-      src = `/hithere/hithere-${n}.mp3`;
-      sessionStorage.setItem(GABBY_INTRO_PLAYED_KEY, 'true');
-    } else {
-      src = '/hithere.mp3';
-    }
+    const pickGreetingSrc = () => {
+      if (typeof window === 'undefined') {
+        const n = Math.floor(Math.random() * HITHERE_COUNT) + 1;
+        return `/hithere/hithere-${n}.mp3`;
+      }
+      try {
+        const raw = localStorage.getItem(GABBY_HITHERE_HISTORY_KEY);
+        const parsed = raw ? JSON.parse(raw) : [];
+        const heard = Array.isArray(parsed)
+          ? [...new Set(parsed.filter((n): n is number => Number.isInteger(n) && n >= 1 && n <= HITHERE_COUNT))]
+          : [];
+        const basePool = Array.from({ length: HITHERE_COUNT }, (_, i) => i + 1);
+        const unseen = basePool.filter(n => !heard.includes(n));
+        const pool = unseen.length ? unseen : basePool;
+        const pick = pool[Math.floor(Math.random() * pool.length)];
+        const nextHistory = unseen.length ? [...heard, pick] : [pick];
+        localStorage.setItem(GABBY_HITHERE_HISTORY_KEY, JSON.stringify(nextHistory));
+        return `/hithere/hithere-${pick}.mp3`;
+      } catch {
+        const n = Math.floor(Math.random() * HITHERE_COUNT) + 1;
+        return `/hithere/hithere-${n}.mp3`;
+      }
+    };
+    const src = pickGreetingSrc();
+    sessionStorage.setItem(GABBY_INTRO_PLAYED_KEY, 'true');
 
     return new Promise(resolve => {
       const audio = new Audio(src);
@@ -809,6 +846,20 @@ export default function AIChatAssistant() {
     const mobile = isMobileViewport();
     const r = new SR();
     recognitionRef.current = r;
+    const clearSttStopTimer = () => {
+      if (sttStopTimerRef.current !== null) {
+        window.clearTimeout(sttStopTimerRef.current);
+        sttStopTimerRef.current = null;
+      }
+    };
+    const armSttStopTimer = () => {
+      clearSttStopTimer();
+      sttStopTimerRef.current = window.setTimeout(() => {
+        if (recognitionRef.current === r) {
+          try { r.stop(); } catch {}
+        }
+      }, STT_IDLE_STOP_MS);
+    };
 
     const lastMsg = latestMsgsRef.current.filter(m => m.role === 'user').slice(-1)[0]?.content?.toLowerCase() ?? '';
     const afrikaansWords = ['die','van','is','en','wat','ek','jy','ons','dit','nie','het','hoe','vir'];
@@ -820,15 +871,18 @@ export default function AIChatAssistant() {
     r.onstart         = () => {
       if (recognitionRef.current !== r) return;
       setListening(true);
+      armSttStopTimer();
     };
     r.onresult        = (e: SpeechRecognitionEventLike) => {
       if (recognitionRef.current !== r) return;
       const t = Array.from(e.results).map(x => x[0].transcript).join('');
       liveTranscriptRef.current = t;
       setInput(t);
+      armSttStopTimer();
     };
     r.onend = () => {
       if (recognitionRef.current !== r) return;
+      clearSttStopTimer();
       recognitionRef.current = null;
       setListening(false);
       const t = liveTranscriptRef.current.trim();
@@ -837,6 +891,7 @@ export default function AIChatAssistant() {
     };
     r.onerror = (e: SpeechRecognitionErrorEventLike) => {
       if (recognitionRef.current !== r) return;
+      clearSttStopTimer();
       recognitionRef.current = null;
       setListening(false);
       if (e.error === 'network' && !mobile) {
@@ -858,6 +913,10 @@ export default function AIChatAssistant() {
     if (listening) {
       recognitionRef.current?.stop();
       recognitionRef.current = null;
+      if (sttStopTimerRef.current !== null) {
+        window.clearTimeout(sttStopTimerRef.current);
+        sttStopTimerRef.current = null;
+      }
       setListening(false);
       liveTranscriptRef.current = '';
     }
@@ -875,6 +934,7 @@ export default function AIChatAssistant() {
     const myGen  = ++sendGenRef.current;
 
     const userMsg: Message = { role: 'user', content: raw };
+    trackEvent('gabby_message', 'gabby_user_message', { length: raw.length });
     const newMsgs = [...latestMsgsRef.current, userMsg];
     setMessages(newMsgs);
     latestMsgsRef.current = newMsgs;

@@ -3,6 +3,8 @@ import { Exo_2, Orbitron } from 'next/font/google';
 import '@/styles/globals.css';
 import AIChatAssistant from '@/components/AIChatAssistant';
 import ThemeBoot from '@/components/ThemeBoot';
+import AnalyticsProvider from '@/components/AnalyticsProvider';
+import AdminDashboard from '@/components/AdminDashboard';
 
 const exo2 = Exo_2({ subsets: ['latin'] });
 const orbitron = Orbitron({ subsets: ['latin'], variable: '--font-orbitron' });
@@ -115,6 +117,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="min-h-screen theme-slateblue" suppressHydrationWarning>
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} />
         <ThemeBoot />
+        <AnalyticsProvider />
+        <AdminDashboard />
         {children}
         <AIChatAssistant />
       </body>

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRef, useState } from "react";
 import Shell from "@/components/Shell";
+import { trackEvent } from "@/hooks/useAnalytics";
 
 export default function FreeAppsPage() {
   const [playingId, setPlayingId] = useState<string | null>(null);
@@ -112,6 +113,7 @@ export default function FreeAppsPage() {
                 {mobileApps.map((app) => (
                   <article
                     key={app.id}
+                    onClick={() => trackEvent("portfolio_click", app.title, { type: "mobile_app", appId: app.id })}
                     className="group relative overflow-hidden rounded-2xl border border-[var(--color-border)] bg-[var(--color-bg-input)] p-4 shadow-[0_0_24px_var(--color-border-accent)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_0_36px_var(--color-border-accent)]"
                   >
                     <div className="mx-auto w-[210px] rounded-[2rem] bg-gradient-to-b from-[#202a4f] to-[#0b1023] p-[7px] shadow-[0_20px_50px_rgba(0,0,0,0.45)]">
@@ -146,6 +148,7 @@ export default function FreeAppsPage() {
                 {desktopApps.map((app) => (
                   <article
                     key={app.id}
+                    onClick={() => trackEvent("portfolio_click", app.title, { type: "desktop_app", appId: app.id })}
                     className="group relative overflow-hidden rounded-2xl border border-[var(--color-border)] bg-[var(--color-bg-input)] p-4 shadow-[0_0_24px_var(--color-border-accent)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_0_36px_var(--color-border-accent)]"
                   >
                     <div className="overflow-hidden rounded-2xl border border-[#2f416e] bg-gradient-to-b from-[#162242] to-[#0a0f22] p-2 shadow-[0_16px_45px_rgba(0,0,0,0.45)]">

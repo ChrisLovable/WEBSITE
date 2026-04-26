@@ -3,6 +3,7 @@
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import css from "@/components/InterestForm.module.css";
+import { trackEvent } from "@/hooks/useAnalytics";
 
 const services = [
   { id: "svc_consulting", value: "AI Strategy & Consulting", icon: "🧠", desc: "Roadmap, opportunity assessment, AI adoption planning" },
@@ -18,6 +19,7 @@ const services = [
 ];
 
 const appTypeOptions = ["Web Application", "Android App", "iOS App", "I don't know yet"];
+const STT_SILENCE_STOP_MS = 5000;
 
 const sectionMap: Record<string, string | null> = {
   "AI Strategy & Consulting": "sec_consulting",
@@ -45,6 +47,11 @@ export default function InterestForm({ showBackHome = false }: { showBackHome?: 
   const [activeField, setActiveField] = useState<string | null>(null);
   const sttPhaseRef = useRef<"idle" | "recording" | "stopping" | "transcribing">("idle");
   const recorderRef = useRef<MediaRecorder | null>(null);
+  const vadRafRef = useRef<number | null>(null);
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const analyserRef = useRef<AnalyserNode | null>(null);
+  const sourceNodeRef = useRef<MediaStreamAudioSourceNode | null>(null);
+  const lastSoundAtRef = useRef(0);
   const sessionRef = useRef<{
     id: number;
     fieldName: string;
@@ -63,8 +70,33 @@ export default function InterestForm({ showBackHome = false }: { showBackHome?: 
     setSttPhase(phase);
   };
 
+  const stopVadMonitoring = () => {
+    if (vadRafRef.current !== null) {
+      window.cancelAnimationFrame(vadRafRef.current);
+      vadRafRef.current = null;
+    }
+    try {
+      sourceNodeRef.current?.disconnect();
+    } catch {
+      // no-op
+    }
+    try {
+      analyserRef.current?.disconnect();
+    } catch {
+      // no-op
+    }
+    sourceNodeRef.current = null;
+    analyserRef.current = null;
+    const ctx = audioContextRef.current;
+    audioContextRef.current = null;
+    if (ctx) {
+      void ctx.close().catch(() => {});
+    }
+  };
+
   useEffect(() => {
     return () => {
+      stopVadMonitoring();
       try {
         if (recorderRef.current && recorderRef.current.state !== "inactive") {
           recorderRef.current.stop();
@@ -104,6 +136,10 @@ export default function InterestForm({ showBackHome = false }: { showBackHome?: 
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    trackEvent("interest_form_submit", "Interest Form Submit Button", {
+      page: typeof window !== "undefined" ? window.location.pathname : "/interest",
+      timestamp: new Date().toISOString()
+    });
     const formEl = event.currentTarget;
     let valid = true;
     const required = formEl.querySelectorAll<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>("[required]");
@@ -225,6 +261,7 @@ export default function InterestForm({ showBackHome = false }: { showBackHome?: 
   const cleanupSession = (sessionId: number) => {
     const current = sessionRef.current;
     if (!current || current.id !== sessionId) return;
+    stopVadMonitoring();
     current.stream.getTracks().forEach((track) => track.stop());
     sessionRef.current = null;
     recorderRef.current = null;
@@ -312,6 +349,45 @@ export default function InterestForm({ showBackHome = false }: { showBackHome?: 
       };
 
       recorder.start(250);
+      const AudioContextCtor = window.AudioContext || (window as Window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+      if (AudioContextCtor) {
+        const ctx = new AudioContextCtor();
+        const source = ctx.createMediaStreamSource(stream);
+        const analyser = ctx.createAnalyser();
+        analyser.fftSize = 2048;
+        source.connect(analyser);
+        audioContextRef.current = ctx;
+        sourceNodeRef.current = source;
+        analyserRef.current = analyser;
+        lastSoundAtRef.current = Date.now();
+
+        const sample = new Uint8Array(analyser.fftSize);
+        const SILENCE_RMS_THRESHOLD = 0.018;
+        const monitor = () => {
+          if (sessionRef.current?.id !== session.id || sttPhaseRef.current !== "recording") return;
+          analyser.getByteTimeDomainData(sample);
+          let sumSquares = 0;
+          for (let i = 0; i < sample.length; i += 1) {
+            const centered = (sample[i] - 128) / 128;
+            sumSquares += centered * centered;
+          }
+          const rms = Math.sqrt(sumSquares / sample.length);
+          if (rms > SILENCE_RMS_THRESHOLD) {
+            lastSoundAtRef.current = Date.now();
+          }
+
+          if (Date.now() - lastSoundAtRef.current >= STT_SILENCE_STOP_MS) {
+            if (recorderRef.current?.state === "recording") {
+              setPhase("stopping");
+              session.stopRequested = true;
+              recorderRef.current.stop();
+            }
+            return;
+          }
+          vadRafRef.current = window.requestAnimationFrame(monitor);
+        };
+        vadRafRef.current = window.requestAnimationFrame(monitor);
+      }
     } catch {
       setPhase("idle");
       setActiveField(null);

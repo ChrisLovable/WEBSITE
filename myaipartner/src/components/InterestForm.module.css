@@ -509,15 +509,15 @@
 }
 
 .sttBtnActive {
-  border-color: var(--color-accent);
-  color: var(--color-accent-text);
-  background: var(--color-accent-bg);
-  box-shadow: 0 0 0 1px var(--color-border-accent), 0 0 18px var(--color-border-accent);
+  border-color: #ef4444;
+  color: #ffffff;
+  background: #b91c1c;
+  box-shadow: 0 0 0 1px rgba(239, 68, 68, 0.7), 0 0 18px rgba(239, 68, 68, 0.55);
 }
 
 .sttBtnActive:hover {
-  border-color: var(--color-accent);
-  background: var(--color-accent-bg);
+  border-color: #ef4444;
+  background: #991b1b;
 }
 
 .clearBtn {
