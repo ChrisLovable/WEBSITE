@@ -1,6 +1,6 @@
 "use client";
 import Link from 'next/link';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import type { Route } from 'next';
 import { createPortal } from 'react-dom';
@@ -11,7 +11,6 @@ export default function Header() {
   const [showMobileWakeNotice, setShowMobileWakeNotice] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [mobileServicesOpen, setMobileServicesOpen] = useState(false);
-  const mobileServicesWrapRef = useRef<HTMLDivElement | null>(null);
   const MOBILE_WAKE_NOTICE_SEEN_KEY = 'mobile-wake-notice-seen-v2';
   const serviceLinks = [
     { href: '/services/ai-strategy-business-consulting', label: 'AI Strategy & Business Consulting' },
@@ -55,22 +54,6 @@ export default function Header() {
   useEffect(() => {
     setMobileServicesOpen(false);
   }, [pathname, hash]);
-
-  useEffect(() => {
-    if (!mobileServicesOpen) return;
-    const onPointerDown = (event: MouseEvent | TouchEvent) => {
-      const target = event.target as Node | null;
-      if (!target) return;
-      if (mobileServicesWrapRef.current?.contains(target)) return;
-      setMobileServicesOpen(false);
-    };
-    document.addEventListener('mousedown', onPointerDown);
-    document.addEventListener('touchstart', onPointerDown, { passive: true });
-    return () => {
-      document.removeEventListener('mousedown', onPointerDown);
-      document.removeEventListener('touchstart', onPointerDown);
-    };
-  }, [mobileServicesOpen]);
 
   const activeItem =
     pathname === '/'
@@ -151,7 +134,7 @@ export default function Header() {
               <Link href="/" className={navClass(activeItem === 'home')}>
                 HOME
               </Link>
-              <div ref={mobileServicesWrapRef} className="relative z-[75] min-w-0 shrink-0 group max-md:flex max-md:w-full max-md:flex-col max-md:items-stretch">
+              <div className="relative z-[75] min-w-0 shrink-0 group max-md:flex max-md:w-full max-md:flex-col max-md:items-stretch">
                 <button
                   type="button"
                   className={`${navClass(activeItem === 'services')} max-md:h-[22px] max-md:w-full`}
@@ -165,23 +148,6 @@ export default function Header() {
                 >
                   SERVICES
                 </button>
-                {mobileServicesOpen && (
-                  <div
-                    id="mobile-services-menu"
-                    className="absolute left-0 right-0 top-full z-[80] mt-1 max-h-[min(70vh,28rem)] overflow-y-auto border border-[var(--color-border)] bg-[var(--color-bg-card)] p-3 shadow-[0_0_24px_var(--color-border-accent)] md:hidden"
-                  >
-                    {serviceLinks.map((service) => (
-                      <Link
-                        key={`mobile-${service.href}`}
-                        href={service.href as Route}
-                        onClick={() => setMobileServicesOpen(false)}
-                        className="mb-2 block border border-[var(--color-border)] bg-[var(--color-bg-input)] px-3 py-2.5 font-sans text-xs font-medium leading-snug tracking-normal text-[var(--color-text-primary)] shadow-[0_0_14px_var(--color-border-accent)] transition-all duration-200 last:mb-0 hover:border-[var(--color-accent)] hover:bg-[var(--color-accent-bg)] hover:text-[var(--color-text-primary)] hover:shadow-[0_0_20px_var(--color-border-accent)]"
-                      >
-                        {service.label}
-                      </Link>
-                    ))}
-                  </div>
-                )}
                 <div className="invisible fixed left-1/2 top-[5.25rem] z-50 hidden w-[92vw] max-w-[30rem] -translate-x-1/2 border border-[var(--color-border)] bg-[var(--color-bg-card)] p-3 opacity-0 shadow-[0_0_24px_var(--color-border-accent)] backdrop-blur-md transition-all duration-200 group-hover:visible group-hover:opacity-100 md:absolute md:left-0 md:top-full md:mt-3 md:block md:w-[30rem] md:translate-x-0">
                   {serviceLinks.map((service) => (
                     <Link
@@ -205,6 +171,29 @@ export default function Header() {
                 CONTACT
               </Link>
             </nav>
+            {mounted && mobileServicesOpen && createPortal(
+              <div className="fixed inset-0 z-[9998] md:hidden">
+                <button
+                  type="button"
+                  aria-label="Close services menu"
+                  className="absolute inset-0 bg-black/45 backdrop-blur-[1px]"
+                  onClick={() => setMobileServicesOpen(false)}
+                />
+                <div className="absolute left-1/2 top-[88px] w-[calc(100vw-24px)] max-w-[420px] -translate-x-1/2 border border-[var(--color-border)] bg-[var(--color-bg-card)] p-3 shadow-[0_0_26px_var(--color-border-accent)]">
+                  {serviceLinks.map((service) => (
+                    <Link
+                      key={`mobile-portal-${service.href}`}
+                      href={service.href as Route}
+                      onClick={() => setMobileServicesOpen(false)}
+                      className="mb-2 block border border-[var(--color-border)] bg-[var(--color-bg-input)] px-3 py-2.5 font-sans text-xs font-medium leading-snug tracking-normal text-[var(--color-text-primary)] shadow-[0_0_14px_var(--color-border-accent)] transition-all duration-200 last:mb-0 hover:border-[var(--color-accent)] hover:bg-[var(--color-accent-bg)] hover:text-[var(--color-text-primary)] hover:shadow-[0_0_20px_var(--color-border-accent)]"
+                    >
+                      {service.label}
+                    </Link>
+                  ))}
+                </div>
+              </div>,
+              document.body
+            )}
             {mounted && showMobileWakeNotice && createPortal(
               <div className="fixed inset-0 z-[9999] md:hidden">
                 <div className="absolute inset-0 bg-black/35 backdrop-blur-sm" />
