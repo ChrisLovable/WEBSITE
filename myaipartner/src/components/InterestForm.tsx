@@ -521,6 +521,7 @@ export default function InterestForm({ showBackHome = false }: { showBackHome?: 
         )}
         <h1>Let&apos;s Build Something<br /><span>Intelligent</span></h1>
         <p>Tell us about your project. We&apos;ll review your brief and respond within one business day with a proposed approach and next steps.</p>
+        <p style={{ marginTop: "0.75rem", fontSize: "0.9rem", opacity: 0.8 }}>Prefer to skip the form? Email us directly at <a href="mailto:info@myaipartner.co.za" style={{ color: "inherit", fontWeight: 600, textDecoration: "underline" }}>info@myaipartner.co.za</a></p>
       </div>
 
       <div className={css.formWrap}>
@@ -727,8 +728,8 @@ export default function InterestForm({ showBackHome = false }: { showBackHome?: 
 
         <div className={`${css.successMsg} ${submitted ? css.successVisible : ""}`}>
           <div className={css.successIcon}>✦</div>
-          <h2>{tr("Brief Received", "Opsomming Ontvang")}</h2>
-          <p>{tr("Thank you. We've received your project brief and will review it carefully.", "Dankie. Ons het jou projek opsomming ontvang en sal dit sorgvuldig hersien.")}<br />{tr("Expect a response within one business day.", "Verwag 'n reaksie binne een werksdag.")}</p>
+          <h2>{tr("Form Successfully Submitted", "Vorm Suksesvol Ingedien")}</h2>
+          <p>{tr("Your information has been successfully submitted.", "Jou inligting is suksesvol ingedien.")}<br />{tr("We will get back to you shortly.", "Ons sal binnekort na jou terug kom.")}</p>
         </div>
       </div>
     </div>
