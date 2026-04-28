@@ -157,14 +157,76 @@ export default function InterestForm({ showBackHome = false }: { showBackHome?: 
     setError(null);
 
     const form = new FormData(formEl);
+    const getValue = (key: string) => String(form.get(key) || "").trim();
+    const getArray = (key: string) =>
+      form
+        .getAll(key)
+        .map((v) => String(v || "").trim())
+        .filter(Boolean);
+
     const payload = {
-      name: `${String(form.get("first_name") || "").trim()} ${String(form.get("last_name") || "").trim()}`.trim(),
-      company: String(form.get("company") || ""),
-      email: String(form.get("email") || ""),
-      phone: String(form.get("phone") || ""),
-      notes: String(form.get("description") || ""),
+      name: `${getValue("first_name")} ${getValue("last_name")}`.trim(),
+      company: getValue("company"),
+      email: getValue("email"),
+      phone: getValue("phone"),
+      notes: getValue("description"),
       service: selectedService,
-      services: selectedService ? [selectedService] : []
+      services: selectedService ? [selectedService] : [],
+      first_name: getValue("first_name"),
+      last_name: getValue("last_name"),
+      industry: getValue("industry"),
+      description: getValue("description"),
+      outcome: getValue("outcome"),
+      ai_maturity: getValue("ai_maturity"),
+      challenge: getValue("challenge"),
+      consulting_priority: getValue("consulting_priority"),
+      decision_stakeholders: getValue("decision_stakeholders"),
+      tech_stack: getValue("tech_stack"),
+      current_process: getValue("current_process"),
+      tools_involved: getValue("tools_involved"),
+      process_frequency: getValue("process_frequency"),
+      automation_volume: getValue("automation_volume"),
+      automation_urgency: getValue("automation_urgency"),
+      app_type: getArray("app_type"),
+      app_users: getValue("app_users"),
+      expected_users: getValue("expected_users"),
+      deployment_preference: getValue("deployment_preference"),
+      compliance_needs: getValue("compliance_needs"),
+      features: getArray("features"),
+      website_type: getValue("website_type"),
+      website_status: getValue("website_status"),
+      website_objective: getValue("website_objective"),
+      website_ai_features: getValue("website_ai_features"),
+      website_requirements: getValue("website_requirements"),
+      training_size: getValue("training_size"),
+      technical_level: getValue("technical_level"),
+      training_format: getValue("training_format"),
+      training_objective: getValue("training_objective"),
+      training_topics: getValue("training_topics"),
+      speaking_audience: getValue("speaking_audience"),
+      speaking_topic: getValue("speaking_topic"),
+      speaking_format: getValue("speaking_format"),
+      speaking_size: getValue("speaking_size"),
+      speaking_date: getValue("speaking_date"),
+      speaking_outcome: getValue("speaking_outcome"),
+      ediscovery_matter: getValue("ediscovery_matter"),
+      ediscovery_sources: getValue("ediscovery_sources"),
+      ediscovery_volume: getValue("ediscovery_volume"),
+      ediscovery_urgency: getValue("ediscovery_urgency"),
+      ediscovery_output: getValue("ediscovery_output"),
+      ediscovery_stakeholders: getValue("ediscovery_stakeholders"),
+      ediscovery_questions: getValue("ediscovery_questions"),
+      market_focus: getValue("market_focus"),
+      market_competitor_count: getValue("market_competitor_count"),
+      market_reporting_cadence: getValue("market_reporting_cadence"),
+      market_report_format: getValue("market_report_format"),
+      market_signals: getValue("market_signals"),
+      other_details: getValue("other_details"),
+      start_date: getValue("start_date"),
+      budget_range: getValue("budget_range"),
+      ideal_completion_date: getValue("ideal_completion_date"),
+      intended_users: getValue("intended_users"),
+      additional: getValue("additional")
     };
 
     try {
