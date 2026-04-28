@@ -521,7 +521,6 @@ export default function InterestForm({ showBackHome = false }: { showBackHome?: 
         )}
         <h1>Let&apos;s Build Something<br /><span>Intelligent</span></h1>
         <p>Tell us about your project. We&apos;ll review your brief and respond within one business day with a proposed approach and next steps.</p>
-        <p style={{ marginTop: "0.75rem", fontSize: "0.9rem", opacity: 0.8 }}>Prefer to skip the form? Email us directly at <a href="mailto:info@myaipartner.co.za" style={{ color: "inherit", fontWeight: 600, textDecoration: "underline" }}>info@myaipartner.co.za</a></p>
       </div>
 
       <div className={css.formWrap}>
@@ -706,10 +705,9 @@ export default function InterestForm({ showBackHome = false }: { showBackHome?: 
           </div>
 
           <div className={css.formSection}>
-            <div className={css.sectionHeader}><div className={css.sectionNum}>05</div><div className={css.sectionTitle}>{tr("Timeline & Budget", "Tydlyn en Begroting")}</div></div>
+            <div className={css.sectionHeader}><div className={css.sectionNum}>05</div><div className={css.sectionTitle}>{tr("Timeline", "Tydlyn")}</div></div>
             <div className={css.fieldGrid}>
               <div className={css.field}><label>{tr("Desired Start Date", "Gewenste Begindatum")}</label><CustomSelect name="start_date" placeholder={tr("Select desired start date", "Kies gewenste begindatum")} options={[tr("Immediately", "Onmiddellik"),tr("Within 1 month", "Binne 1 maand"),tr("1-3 months", "1-3 maande"),tr("Just exploring", "Net besig om te verken")]} /></div>
-              <div className={css.field}><label>{tr("Estimated Budget Range (ZAR)", "Geskatte Begrotingsreeks (ZAR)")}</label><CustomSelect name="budget_range" placeholder={tr("Select budget range", "Kies begrotingsreeks")} options={[tr("Under R50k", "Onder R50k"),"R50k - R200k","R200k - R500k","R500k+",tr("Not sure", "Nie seker nie")]} /></div>
               <div className={css.field}><label>{tr("Ideal Completion / Implementation Date", "Ideale Voltooiing / Implementeringsdatum")}</label><CustomSelect name="ideal_completion_date" placeholder={tr("Select target completion window", "Kies teiken voltooiingsvenster")} options={[tr("Within 2 weeks", "Binne 2 weke"),tr("Within 1 month", "Binne 1 maand"),tr("1-3 months", "1-3 maande"),tr("3-6 months", "3-6 maande"),tr("6+ months", "6+ maande"),tr("No fixed date yet", "Nog geen vaste datum")]} /></div>
               <div className={css.field}><label>{tr("Number of Intended Users", "Aantal Beoogde Gebruikers")}</label><CustomSelect name="intended_users" placeholder={tr("Select user range", "Kies gebruikersreeks")} options={[tr("Single user", "Enkele gebruiker"),"2-10","10-50","50-200","200-1000",tr("1000's", "1000's")]} /></div>
               <div className={`${css.field} ${css.span2}`}><label>{tr("Anything else we should know?", "Enigiets anders wat ons moet weet?")}</label>{renderFieldActions("additional")}<textarea name="additional" rows={3} /></div>
@@ -728,8 +726,8 @@ export default function InterestForm({ showBackHome = false }: { showBackHome?: 
 
         <div className={`${css.successMsg} ${submitted ? css.successVisible : ""}`}>
           <div className={css.successIcon}>✦</div>
-          <h2>{tr("Form Successfully Submitted", "Vorm Suksesvol Ingedien")}</h2>
-          <p>{tr("Your information has been successfully submitted.", "Jou inligting is suksesvol ingedien.")}<br />{tr("We will get back to you shortly.", "Ons sal binnekort na jou terug kom.")}</p>
+          <h2>{tr("Brief Received", "Opsomming Ontvang")}</h2>
+          <p>{tr("Thank you. We've received your project brief and will review it carefully.", "Dankie. Ons het jou projek opsomming ontvang en sal dit sorgvuldig hersien.")}<br />{tr("Expect a response within one business day.", "Verwag 'n reaksie binne een werksdag.")}</p>
         </div>
       </div>
     </div>

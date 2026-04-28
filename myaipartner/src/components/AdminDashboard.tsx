@@ -188,7 +188,29 @@ export default function AdminDashboard() {
       }
     };
     logo.addEventListener('click', onLogoClick);
-    return () => logo.removeEventListener('click', onLogoClick);
+
+    // Long press (500ms) — works on desktop and mobile
+    let lpTimer: ReturnType<typeof setTimeout> | null = null;
+    const openDash = () => {
+      if (unlocked) { setOpen(true); void loadStats(); void loadSubmissions(); }
+      else { setPasswordOpen(true); }
+    };
+    const onPressStart = () => { lpTimer = setTimeout(() => { lpTimer = null; openDash(); }, 500); };
+    const onPressEnd = () => { if (lpTimer) { clearTimeout(lpTimer); lpTimer = null; } };
+    logo.addEventListener('mousedown', onPressStart);
+    logo.addEventListener('mouseup', onPressEnd);
+    logo.addEventListener('mouseleave', onPressEnd);
+    logo.addEventListener('touchstart', onPressStart, { passive: true });
+    logo.addEventListener('touchend', onPressEnd);
+
+    return () => {
+      logo.removeEventListener('click', onLogoClick);
+      logo.removeEventListener('mousedown', onPressStart);
+      logo.removeEventListener('mouseup', onPressEnd);
+      logo.removeEventListener('mouseleave', onPressEnd);
+      logo.removeEventListener('touchstart', onPressStart);
+      logo.removeEventListener('touchend', onPressEnd);
+    };
   }, [unlocked, loadStats, loadSubmissions]);
 
   useEffect(() => {
